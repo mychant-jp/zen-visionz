@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#080511">
+<title>ZEN VISIONZ — Ver.004</title>
+<style>
+:root{
+  --ink:#080511;
+  --mist:rgba(255,255,255,.72);
+  --lime:#d8ff54;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:#fff;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;touch-action:none}
+button{font:inherit}
+#world,#grain{position:fixed;inset:0;width:100%;height:100%;display:block}
+#grain{pointer-events:none;mix-blend-mode:screen;opacity:.075}
+#vignette{position:fixed;inset:0;pointer-events:none;background:
+  radial-gradient(ellipse 60% 52% at 50% 50%,transparent 52%,rgba(2,0,10,.28) 82%,rgba(2,0,10,.58) 100%),
+  linear-gradient(to bottom,rgba(0,0,0,.22),transparent 18%,transparent 82%,rgba(0,0,0,.34));}
+#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;text-align:center;transition:opacity 1.8s ease;z-index:3}
+#intro.hidden{opacity:0}
+.intro-inner{padding:24px 30px;border-radius:28px;background:linear-gradient(180deg,rgba(10,6,22,.32),rgba(10,6,22,.06));backdrop-filter:blur(10px)}
+.kicker{font-size:10px;letter-spacing:.5em;color:#d8ff54;opacity:.92}
+.title{margin:12px 0 8px;font-size:clamp(28px,10vw,64px);font-weight:900;letter-spacing:.16em}
+.sub{font-size:11px;letter-spacing:.28em;line-height:1.9;color:#e7e1f7;opacity:.92}
+#overlay{position:fixed;inset:0;pointer-events:none;z-index:4}
+#releaseWrap{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:5;display:flex;justify-content:center;width:100%;pointer-events:none;transition:opacity .8s ease}
+#releaseWrap.dim{opacity:.28}
+#release{pointer-events:auto;appearance:none;border:none;border-radius:999px;padding:15px 24px;min-width:140px;background:rgba(9,7,20,.28);color:#fff;border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(14px);letter-spacing:.34em;font-size:11px;font-weight:700;box-shadow:0 0 32px rgba(216,255,84,.12), inset 0 0 14px rgba(255,255,255,.04);cursor:pointer;transition:transform .18s ease,background .2s ease,box-shadow .3s ease}
+#release:active{transform:scale(.97)}
+#release:hover{background:rgba(9,7,20,.42);box-shadow:0 0 40px rgba(216,255,84,.19), inset 0 0 18px rgba(255,255,255,.06)}
+#sound{position:fixed;top:calc(env(safe-area-inset-top) + 14px);right:14px;z-index:5;pointer-events:auto;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(10,8,22,.18);color:#fff;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;opacity:.55;transition:opacity .3s ease,transform .18s ease}
+#sound:active{transform:scale(.95)}
+#sound.on{opacity:.92}
+#sound:hover{opacity:.9}
+#titleGhost{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 16px);transform:translateX(-50%);z-index:4;font-size:9px;letter-spacing:.44em;color:rgba(255,255,255,.4);pointer-events:none;opacity:0;transition:opacity 1.2s ease}
+#titleGhost.show{opacity:.8}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,3,12,.86);backdrop-filter:blur(20px);padding:22px;z-index:10}
+.modal.open{display:flex}
+.panel{width:min(100%,460px);text-align:center}
+.panel .eyebrow{font-size:10px;letter-spacing:.4em;color:var(--lime)}
+.panel h1{margin:12px 0 8px;font-size:clamp(28px,9vw,44px);letter-spacing:.1em}
+.panel .subtitle{font-size:11px;letter-spacing:.22em;color:#d0c7df;line-height:1.7;margin:0 0 18px}
+.artframe{display:block;width:100%;aspect-ratio:1/1;background:#110b23;border:1px solid rgba(255,255,255,.24);box-shadow:0 0 45px rgba(136,67,255,.16)}
+.statrow{display:flex;gap:10px;margin-top:14px}
+.stat{flex:1;border:1px solid rgba(255,255,255,.14);padding:12px 8px;border-radius:18px;background:rgba(255,255,255,.04)}
+.stat small{display:block;font-size:9px;letter-spacing:.16em;color:#bcb1cf}
+.stat div{margin-top:6px;font-size:17px;font-weight:800}
+.actions{display:flex;gap:10px;margin-top:16px}
+.actions button{flex:1;min-height:50px;padding:12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.14em;cursor:pointer;border:1px solid rgba(255,255,255,.18)}
+.primary{background:var(--lime);color:#11150a;border-color:var(--lime)}
+.secondary{background:rgba(255,255,255,.08);color:#fff}
+.footer{font-size:10px;letter-spacing:.14em;color:#a79ebb;margin-top:16px}
+@media (max-width:420px){
+  .title{letter-spacing:.12em}
+  .sub{font-size:10px}
+  #release{padding:14px 22px;min-width:132px}
+}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="没入型サイケデリックアート"></canvas>
+<canvas id="grain" aria-hidden="true"></canvas>
+<div id="vignette"></div>
+<div id="titleGhost">ZEN VISIONZ</div>
+<div id="intro">
+  <div class="intro-inner">
+    <div class="kicker">INTERACTIVE VISION</div>
+    <div class="title">ZEN VISIONZ</div>
+    <div class="sub">TOUCH TO SHAPE THE FLOW<br>RELEASE WHEN IT FEELS RIGHT</div>
+  </div>
+</div>
+<div id="overlay"></div>
+<button id="sound" type="button" aria-label="sound">♪</button>
+<div id="releaseWrap"><button id="release" type="button">RELEASE</button></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="arttitle">
+  <div class="panel">
+    <div class="eyebrow">YOUR MOMENT, YOUR ART.</div>
+    <h1 id="arttitle">RELEASED.</h1>
+    <p class="subtitle">THE END IS YOURS.</p>
+    <canvas id="art" class="artframe" width="1080" height="1080"></canvas>
+    <div class="statrow">
+      <div class="stat"><small>FLOW TIME</small><div id="statTime">00:00</div></div>
+      <div class="stat"><small>VISION DEPTH</small><div id="statDepth">01</div></div>
+      <div class="stat"><small>ARTWORK</small><div id="statNumber">#001</div></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="save" type="button">SAVE ART</button>
+      <button class="secondary" id="continue" type="button">KEEP FLOWING</button>
+    </div>
+    <div class="footer">LET GO. KEEP THE MOMENT.</div>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d', {alpha:false});
+const grainCanvas = document.getElementById('grain');
+const grainCtx = grainCanvas.getContext('2d');
+const art = document.getElementById('art');
+const ac = art.getContext('2d');
+const modal = document.getElementById('modal');
+const intro = document.getElementById('intro');
+const titleGhost = document.getElementById('titleGhost');
+const releaseWrap = document.getElementById('releaseWrap');
+const releaseBtn = document.getElementById('release');
+const soundBtn = document.getElementById('sound');
+
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const mix = (a,b,t)=>a+(b-a)*t;
+const smoothstep = t => t*t*(3-2*t);
+const smootherstep = t => t*t*t*(t*(t*6-15)+10);
+const timeText = sec => {
+  let s=Math.floor(sec);
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+};
+const hsla = (h,s,l,a=1)=>`hsla(${((h%360)+360)%360} ${s}% ${l}% / ${a})`;
+
+let w=0,h=0,dpr=1;
+let t=0,last=0,elapsed=0;
+let hold=false, freeze=false, activeSound=false, started=false;
+let pointerX=.5, pointerY=.5, targetX=.5, targetY=.5;
+let energy=.18, swirl=0, artCount=0;
+let idleTimer=0;
+let audioCtx=null, masterGain=null, osc=[];
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const seed = Math.random()*1000;
+
+const motifs = [
+  {petals:8, wave:0.12, wobble:0.04, rays:14, hue:0, core:0.20, lattice:0.24, pulse:0.38},
+  {petals:13, wave:0.18, wobble:0.08, rays:20, hue:45, core:0.24, lattice:0.30, pulse:0.52},
+  {petals:21, wave:0.24, wobble:0.10, rays:28, hue:120, core:0.19, lattice:0.36, pulse:0.60},
+  {petals:11, wave:0.14, wobble:0.13, rays:18, hue:220, core:0.26, lattice:0.22, pulse:0.44},
+  {petals:16, wave:0.22, wobble:0.06, rays:24, hue:300, core:0.22, lattice:0.28, pulse:0.56}
+];
+
+function currentMotif(now){
+  const cycle = now/24;
+  const idx0 = Math.floor(cycle)%motifs.length;
+  const idx1 = (idx0+1)%motifs.length;
+  const f = smoothstep(cycle-Math.floor(cycle));
+  const a = motifs[idx0], b = motifs[idx1];
+  return {
+    petals: mix(a.petals,b.petals,f),
+    wave: mix(a.wave,b.wave,f),
+    wobble: mix(a.wobble,b.wobble,f),
+    rays: mix(a.rays,b.rays,f),
+    hue: mix(a.hue,b.hue,f),
+    core: mix(a.core,b.core,f),
+    lattice: mix(a.lattice,b.lattice,f),
+    pulse: mix(a.pulse,b.pulse,f),
+    depth: 1 + cycle*0.16
+  };
+}
+
+function resize(){
+  dpr = Math.min(window.devicePixelRatio||1, 2);
+  w = innerWidth; h = innerHeight;
+  canvas.width = Math.floor(w*dpr); canvas.height = Math.floor(h*dpr);
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  grainCanvas.width = Math.floor(w); grainCanvas.height = Math.floor(h);
+  grainCanvas.style.width = w+'px'; grainCanvas.style.height = h+'px';
+  drawGrain();
+}
+window.addEventListener('resize', resize);
+resize();
+
+function drawGrain(){
+  const img = grainCtx.createImageData(w,h);
+  for(let i=0;i<img.data.length;i+=4){
+    const v = 210 + Math.random()*45;
+    img.data[i]=img.data[i+1]=img.data[i+2]=v;
+    img.data[i+3]=10;
+  }
+  grainCtx.putImageData(img,0,0);
+}
+
+function drawSacredGeometry(g,cx,cy,sz,now,m){
+  g.save();
+  g.translate(cx,cy);
+  g.rotate(swirl*0.12 + now*0.04);
+  const rings = reduced ? 8 : 12;
+  for(let i=0;i<rings;i++){
+    const p = i/(rings-1);
+    const r = sz*(0.08 + p*0.40*(0.88 + Math.sin(now*0.4+i)*0.08));
+    const alpha = 0.10*(1-p) + energy*0.035;
+    g.strokeStyle = hsla(m.hue + i*28 + now*18, 90, 72-28*p, alpha);
+    g.lineWidth = Math.max(0.6, 1.8*(1-p));
+    g.beginPath();
+    g.arc(0,0,r,0,Math.PI*2);
+    g.stroke();
+
+    const dots = Math.max(6, Math.round(m.petals));
+    for(let j=0;j<dots;j++){
+      const a = j*Math.PI*2/dots + now*(0.08 + p*0.02) + i*0.11;
+      const dr = r*(0.42 + m.lattice*0.8);
+      const x = Math.cos(a)*dr;
+      const y = Math.sin(a)*dr;
+      g.beginPath();
+      g.fillStyle = hsla(m.hue+170+j*12-now*16,100,74,alpha*.95);
+      g.arc(x,y,sz*(0.003 + 0.004*(1-p)),0,Math.PI*2);
+      g.fill();
+    }
+  }
+  g.restore();
+}
+
+function drawPetalField(g,cx,cy,sz,now,m){
+  const loops = reduced ? 13 : 18;
+  for(let ring=loops; ring>=0; ring--){
+    const p = ring/loops;
+    const baseR = sz*(0.10 + Math.pow(p,1.45)*0.66);
+    const petals = m.petals + Math.sin(now*0.15 + ring*0.21)*2.2;
+    const twist = now*(0.12 + p*0.12) + swirl + p*4.2;
+    const amp = m.wave + energy*0.16;
+    const wob = m.wobble + 0.03*Math.sin(now*0.33 + ring);
+    g.beginPath();
+    const steps = reduced ? 86 : 144;
+    for(let i=0;i<=steps;i++){
+      const a = i/steps*Math.PI*2;
+      const petalWave = Math.sin(a*petals + twist*2.5) * amp;
+      const orbit = Math.sin(a*(petals*0.5) - now*0.85 + ring*0.4) * wob;
+      const bloom = Math.cos(a*3 + now*0.6 + ring*0.7) * (0.04 + energy*0.03);
+      const r = baseR*(1 + petalWave + orbit + bloom);
+      const px = cx + Math.cos(a + twist*0.20) * r;
+      const py = cy + Math.sin(a + twist*0.20) * r * (0.82 + 0.08*Math.sin(now*0.3));
+      if(i===0) g.moveTo(px,py); else g.lineTo(px,py);
+    }
+    g.closePath();
+    const hue = m.hue + now*22 + ring*17 + seed*0.2;
+    g.globalAlpha = 0.08 + (1-p)*0.25;
+    g.fillStyle = hsla(hue, 92, 24 + (1-p)*22, 1);
+    g.fill();
+    g.globalAlpha = 0.14 + (1-p)*0.36;
+    g.lineWidth = Math.max(0.7, 1.8*(1-p));
+    g.strokeStyle = hsla(hue+68, 100, 66, 1);
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+
+function drawRayHalo(g,cx,cy,sz,now,m){
+  g.save();
+  g.globalCompositeOperation = 'screen';
+  const rays = Math.round(m.rays);
+  for(let i=0;i<rays;i++){
+    const a = i*Math.PI*2/rays + now*0.06 + swirl*0.6;
+    const inner = sz*(0.06 + Math.sin(now*0.3+i)*0.01);
+    const outer = sz*(0.33 + 0.11*Math.sin(now*0.24+i*0.4) + energy*0.12);
+    const x1 = cx + Math.cos(a)*inner;
+    const y1 = cy + Math.sin(a)*inner;
+    const x2 = cx + Math.cos(a + Math.sin(now*0.6+i)*0.15)*outer;
+    const y2 = cy + Math.sin(a + Math.sin(now*0.6+i)*0.15)*outer;
+    const grad = g.createLinearGradient(x1,y1,x2,y2);
+    grad.addColorStop(0, hsla(m.hue+i*12+now*30, 100, 76, 0));
+    grad.addColorStop(.2, hsla(m.hue+i*14+now*26, 100, 72, .35));
+    grad.addColorStop(.65, hsla(m.hue+140+i*16-now*20, 100, 58, .22));
+    grad.addColorStop(1, hsla(m.hue+200+i*8, 100, 40, 0));
+    g.strokeStyle = grad;
+    g.lineWidth = Math.max(0.8, 1.2 + energy*2.2);
+    g.beginPath();
+    g.moveTo(x1,y1);
+    g.quadraticCurveTo(
+      cx + Math.cos(a)*outer*0.30 + Math.sin(now+i)*sz*0.03,
+      cy + Math.sin(a)*outer*0.30 + Math.cos(now+i*0.7)*sz*0.03,
+      x2,y2
+    );
+    g.stroke();
+  }
+  g.restore();
+}
+
+function drawCore(g,cx,cy,sz,now,m){
+  const aura = g.createRadialGradient(cx,cy,0,cx,cy,sz*0.58);
+  aura.addColorStop(0, hsla(m.hue+120, 100, 80, .08));
+  aura.addColorStop(.18, hsla(m.hue+35+Math.sin(now)*25, 100, 62, .18));
+  aura.addColorStop(.36, hsla(m.hue+280, 100, 50, .16));
+  aura.addColorStop(.6, hsla(m.hue+40, 100, 32, .07));
+  aura.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = aura;
+  g.beginPath(); g.arc(cx,cy,sz*0.58,0,Math.PI*2); g.fill();
+
+  const core = g.createRadialGradient(cx,cy,0,cx,cy,sz*(0.10 + m.core));
+  core.addColorStop(0, 'rgba(255,255,255,.72)');
+  core.addColorStop(.08, hsla(m.hue+70+now*20, 100, 78, .92));
+  core.addColorStop(.22, hsla(m.hue+190-now*12, 100, 54, .68));
+  core.addColorStop(.44, hsla(m.hue+300, 100, 40, .22));
+  core.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = core;
+  g.beginPath(); g.arc(cx,cy,sz*(0.10 + m.core),0,Math.PI*2); g.fill();
+
+  const eyeW = sz*(0.14 + energy*0.04);
+  const eyeH = sz*(0.05 + Math.sin(now*0.9)*0.004);
+  g.save();
+  g.translate(cx,cy);
+  g.rotate(Math.sin(now*0.18)*0.08);
+  g.beginPath();
+  g.ellipse(0,0,eyeW,eyeH,0,0,Math.PI*2);
+  g.strokeStyle = hsla(m.hue+90, 100, 88, .42);
+  g.lineWidth = 1.3;
+  g.stroke();
+  g.beginPath();
+  g.arc(0,0,sz*(0.022 + energy*0.01),0,Math.PI*2);
+  g.fillStyle = hsla(m.hue+200, 100, 84, .9);
+  g.fill();
+  g.restore();
+}
+
+function render(g,W,H,now,detail=1){
+  const cx = W*(0.5 + (pointerX-.5)*0.10);
+  const cy = H*(0.5 + (pointerY-.5)*0.10);
+  const sz = Math.max(W,H);
+  const min = Math.min(W,H);
+  const m = currentMotif(now);
+
+  g.save();
+  const bg = g.createRadialGradient(cx,cy,0,cx,cy,sz*0.95);
+  bg.addColorStop(0, hsla(m.hue+40+now*9, 80, 12+energy*5, 1));
+  bg.addColorStop(.35, hsla(m.hue+150-now*6, 78, 8, 1));
+  bg.addColorStop(1, '#05030c');
+  g.fillStyle = bg;
+  g.fillRect(0,0,W,H);
+
+  drawCore(g,cx,cy,min,now,m);
+  drawRayHalo(g,cx,cy,sz,now,m);
+  drawPetalField(g,cx,cy,min*0.96,now,m);
+  drawSacredGeometry(g,cx,cy,min*0.95,now,m);
+
+  // mirrored aura arcs
+  g.globalCompositeOperation='screen';
+  for(let i=0;i<5;i++){
+    const yy = cy + (i-2)*min*0.10;
+    const rr = min*(0.11 + i*0.07 + energy*0.025);
+    g.strokeStyle = hsla(m.hue+200+i*24+now*18, 100, 70-i*6, .08 + i*0.02);
+    g.lineWidth = 1.1;
+    g.beginPath();
+    g.arc(cx,yy,rr,Math.PI*0.1,Math.PI*0.9);
+    g.stroke();
+    g.beginPath();
+    g.arc(cx,yy,rr,-Math.PI*0.9,-Math.PI*0.1);
+    g.stroke();
+  }
+  g.globalCompositeOperation='source-over';
+
+  // breathing veil
+  const veil = g.createLinearGradient(0,0,W,H);
+  veil.addColorStop(0, hsla(m.hue+320, 100, 16, .04));
+  veil.addColorStop(.5, 'rgba(255,255,255,0)');
+  veil.addColorStop(1, hsla(m.hue+120, 100, 14, .05));
+  g.fillStyle = veil;
+  g.fillRect(0,0,W,H);
+  g.restore();
+}
+
+function audioInit(){
+  try{
+    const A = window.AudioContext || window.webkitAudioContext;
+    if(!A) return false;
+    audioCtx = new A();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 850;
+    masterGain.connect(filter);
+    filter.connect(audioCtx.destination);
+    [110,146.83,220,293.66].forEach((f,i)=>{
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = i%2 ? 'sine' : 'triangle';
+      g.gain.value = i===0 ? .18 : .06;
+      o.frequency.value = f;
+      o.connect(g); g.connect(masterGain); o.start();
+      osc.push({o,g,base:f});
+    });
+    return true;
+  }catch(e){return false;}
+}
+
+function updateAudio(){
+  if(!audioCtx || !activeSound) return;
+  const now = audioCtx.currentTime;
+  osc.forEach((item,i)=>{
+    const drift = 1 + Math.sin(t*(0.12+i*0.03)+i)*0.035 + energy*0.03;
+    item.o.frequency.setTargetAtTime(item.base*drift, now, .35);
+    item.g.gain.setTargetAtTime((i===0?.16:.05) + energy*(i===0?.03:.012), now, .35);
+  });
+}
+
+soundBtn.addEventListener('click', async ()=>{
+  if(!audioCtx && !audioInit()) return;
+  await audioCtx.resume();
+  activeSound = !activeSound;
+  masterGain.gain.setTargetAtTime(activeSound ? .18 : 0, audioCtx.currentTime, .25);
+  soundBtn.classList.toggle('on', activeSound);
+});
+setInterval(updateAudio, 180);
+
+function registerActivity(){
+  idleTimer = 0;
+  releaseWrap.classList.remove('dim');
+}
+
+function startExperience(){
+  if(started) return;
+  started = true;
+  setTimeout(()=>intro.classList.add('hidden'), 300);
+  setTimeout(()=>titleGhost.classList.add('show'), 2800);
+}
+
+function updatePointer(clientX, clientY){
+  targetX = clamp(clientX / w, 0, 1);
+  targetY = clamp(clientY / h, 0, 1);
+  registerActivity();
+  startExperience();
+}
+
+canvas.addEventListener('pointerdown', e=>{
+  hold = true;
+  updatePointer(e.clientX, e.clientY);
+  try{canvas.setPointerCapture(e.pointerId);}catch(_){ }
+});
+canvas.addEventListener('pointermove', e=>{
+  if(hold) updatePointer(e.clientX, e.clientY);
+});
+canvas.addEventListener('pointerup', ()=> hold = false);
+canvas.addEventListener('pointercancel', ()=> hold = false);
+window.addEventListener('blur', ()=> hold = false);
+
+function capture(){
+  freeze = true;
+  artCount++;
+  const S=1080;
+  const tx = document.createElement('canvas');
+  tx.width=S; tx.height=S;
+  const gx = tx.getContext('2d');
+  render(gx,S,S,t + seed*0.0007,1);
+
+  ac.clearRect(0,0,S,S);
+  ac.fillStyle = '#080511';
+  ac.fillRect(0,0,S,S);
+  ac.drawImage(tx,0,0);
+  const fade = ac.createLinearGradient(0,790,0,S);
+  fade.addColorStop(0,'rgba(5,3,12,0)');
+  fade.addColorStop(1,'rgba(5,3,12,.86)');
+  ac.fillStyle = fade;
+  ac.fillRect(0,790,S,290);
+  ac.strokeStyle='rgba(255,255,255,.72)';
+  ac.lineWidth=2;
+  ac.strokeRect(28,28,S-56,S-56);
+  ac.fillStyle='#fff';
+  ac.textAlign='left';
+  ac.font='bold 38px Arial, sans-serif';
+  ac.fillText('ZEN VISIONZ',76,932);
+  ac.font='20px Arial, sans-serif';
+  ac.fillStyle='#d8ff54';
+  ac.fillText('THE END IS YOURS.',78,970);
+  ac.textAlign='right';
+  ac.fillStyle='#fff';
+  ac.font='20px Arial, sans-serif';
+  ac.fillText('RELEASE '+String(artCount).padStart(3,'0'),1000,938);
+  ac.fillStyle='#c6b8cf';
+  ac.fillText(timeText(elapsed),1000,972);
+
+  $('statTime').textContent = timeText(elapsed);
+  $('statDepth').textContent = String(Math.floor(1+t/24)).padStart(2,'0');
+  $('statNumber').textContent = '#'+String(artCount).padStart(3,'0');
+  modal.classList.add('open');
+}
+
+releaseBtn.addEventListener('click', ()=>{ startExperience(); capture(); });
+$('continue').addEventListener('click', ()=>{
+  modal.classList.remove('open');
+  freeze = false;
+  last = performance.now();
+  registerActivity();
+});
+$('save').addEventListener('click', ()=>{
+  art.toBlob(blob=>{
+    if(!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ZEN_VISIONZ_RELEASE_'+String(artCount).padStart(3,'0')+'.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  },'image/png');
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && modal.classList.contains('open')) $('continue').click();
+});
+document.addEventListener('visibilitychange', ()=>{ last = performance.now(); });
+
+function frame(now){
+  if(!last) last = now;
+  const dt = Math.min(0.05, (now-last)/1000);
+  last = now;
+  if(!freeze){
+    t += dt*(reduced ? .35 : 1);
+    elapsed += dt;
+    idleTimer += dt;
+    if(idleTimer > 4.2) releaseWrap.classList.add('dim');
+    pointerX = mix(pointerX, targetX, Math.min(1, dt*2.4));
+    pointerY = mix(pointerY, targetY, Math.min(1, dt*2.4));
+    energy = mix(energy, hold ? .96 : .20, dt*2.8);
+    if(!hold){
+      targetX = mix(targetX, .5 + Math.sin(t*0.08)*0.02, dt*0.35);
+      targetY = mix(targetY, .5 + Math.cos(t*0.06)*0.02, dt*0.35);
+    }
+    swirl += dt*(0.18 + energy*0.35);
+    render(ctx,w,h,t,1);
+  }
+  requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
