@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#07090d">
+<title>ZEN VISIONZ — Ver.013</title>
+<style>
+:root{--bg:#07090d;--fg:#f7fbff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;touch-action:none}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+#grain{pointer-events:none;opacity:.045;mix-blend-mode:screen}
+#veil{position:fixed;inset:0;pointer-events:none;background:
+  radial-gradient(ellipse 62% 58% at 50% 48%, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,.10) 76%, rgba(0,0,0,.48) 100%),
+  linear-gradient(to bottom, rgba(255,255,255,.035), rgba(255,255,255,0) 14%, rgba(255,255,255,0) 82%, rgba(255,255,255,.02));}
+#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;z-index:4;transition:opacity 1.5s ease}
+#intro.hidden{opacity:0}
+.intro-inner{padding:20px 24px;border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));backdrop-filter:blur(14px);box-shadow:0 0 80px rgba(255,255,255,.08), inset 0 0 26px rgba(255,255,255,.08)}
+.kicker{font-size:10px;letter-spacing:.50em;color:rgba(247,251,255,.82)}
+.title{margin:12px 0 10px;font-size:clamp(28px,10vw,60px);font-weight:900;letter-spacing:.18em}
+.sub{font-size:10px;letter-spacing:.28em;line-height:2;color:rgba(247,251,255,.78)}
+#releaseWrap{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:5;transition:opacity .8s ease}
+#releaseWrap.dim{opacity:.18}
+#release{appearance:none;border:none;background:transparent;color:rgba(255,255,255,.98);font-size:30px;line-height:1;cursor:pointer;padding:12px 16px;border-radius:50%;text-shadow:0 0 12px rgba(255,255,255,.95),0 0 32px rgba(255,255,255,.75),0 0 70px rgba(235,245,255,.52);box-shadow:inset 0 0 14px rgba(255,255,255,.05);transition:transform .16s ease, filter .3s ease, opacity .3s ease}
+#release:active{transform:scale(.94)}#release:hover{filter:brightness(1.12)}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,12,18,.82);backdrop-filter:blur(20px);padding:22px;z-index:10}
+.modal.open{display:flex}
+.panel{width:min(100%,460px);text-align:center}.panel .eyebrow{font-size:10px;letter-spacing:.36em;color:rgba(247,251,255,.82)}.panel h1{margin:12px 0 8px;font-size:clamp(26px,9vw,42px);letter-spacing:.12em;font-weight:850}.panel .subtitle{font-size:11px;line-height:1.8;letter-spacing:.18em;color:rgba(235,241,248,.76);margin:0 0 18px}.artframe{display:block;width:100%;aspect-ratio:1/1;background:#0b0f16;border:1px solid rgba(255,255,255,.24);box-shadow:0 0 70px rgba(255,255,255,.10)}
+.statrow{display:flex;gap:10px;margin-top:14px}.stat{flex:1;padding:12px 8px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03)}.stat small{display:block;font-size:9px;letter-spacing:.14em;color:rgba(225,233,244,.58)}.stat div{margin-top:6px;font-size:16px;font-weight:800}.actions{display:flex;gap:10px;margin-top:16px}.actions button{flex:1;min-height:50px;padding:12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.14em;cursor:pointer}.primary{background:#f4f8ff;color:#11161f;border:1px solid rgba(255,255,255,.62)}.secondary{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.18)}.footer{font-size:10px;letter-spacing:.14em;color:rgba(225,233,246,.45);margin-top:16px}
+@media(max-width:420px){.sub{font-size:9px}#release{font-size:28px;padding:11px 15px}}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="white divine infinite portal"></canvas>
+<canvas id="grain" aria-hidden="true"></canvas>
+<div id="veil"></div>
+<div id="intro"><div class="intro-inner"><div class="kicker">INFINITE VISION</div><div class="title">ZEN VISIONZ</div><div class="sub">TOUCH TO OPEN THE PORTAL<br>TAP ✦ WHEN IT FEELS COMPLETE</div></div></div>
+<div id="releaseWrap"><button id="release" type="button" aria-label="release">✦</button></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="arttitle"><div class="panel"><div class="eyebrow">YOUR MOMENT, YOUR LIGHT.</div><h1 id="arttitle">RELEASED.</h1><p class="subtitle">THE END IS YOURS.</p><canvas id="art" class="artframe" width="1080" height="1080"></canvas><div class="statrow"><div class="stat"><small>FLOW TIME</small><div id="statTime">00:00</div></div><div class="stat"><small>DEPTH</small><div id="statDepth">01</div></div><div class="stat"><small>ARTWORK</small><div id="statNumber">#001</div></div></div><div class="actions"><button class="primary" id="save" type="button">SAVE ART</button><button class="secondary" id="continue" type="button">KEEP FLOWING</button></div><div class="footer">LET GO. KEEP THE VISION.</div></div></div>
+<script>
+(()=>{
+'use strict';
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d',{alpha:false});
+const grainCanvas=document.getElementById('grain'),grainCtx=grainCanvas.getContext('2d');
+const intro=document.getElementById('intro');
+const releaseWrap=document.getElementById('releaseWrap');
+const releaseBtn=document.getElementById('release');
+const modal=document.getElementById('modal');
+const art=document.getElementById('art');
+const ac=art.getContext('2d');
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mix=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t*t*(3-2*t);
+const TAU=Math.PI*2;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let w=0,h=0,dpr=1,t=0,last=0,elapsed=0;
+let pointerX=.5,pointerY=.5,targetX=.5,targetY=.5;
+let hold=false,freeze=false,started=false,energy=.10,idle=0,artCount=0;
+let orbit=0,spinVel=0,warp=.0,warpVel=.0;
+const layerCount=16;
+const layers=Array.from({length:layerCount},(_,i)=>({z:i/layerCount+Math.random()/layerCount,spin:(Math.random()*2-1)*0.2,seed:Math.random()*100}));
+
+const palettes=[
+  {a:[255,255,255],b:[246,250,255],c:[236,243,255],d:[223,233,247]},
+  {a:[255,255,255],b:[249,251,255],c:[241,245,255],d:[229,238,250]},
+  {a:[255,255,255],b:[247,249,255],c:[238,242,255],d:[224,233,247]}
+];
+function rgba(arr,a=1){return `rgba(${arr[0]},${arr[1]},${arr[2]},${a})`;}
+function timeText(sec){const s=Math.floor(sec);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function resize(){dpr=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);grainCanvas.width=w;grainCanvas.height=h;grainCanvas.style.width=w+'px';grainCanvas.style.height=h+'px';drawGrain();}
+addEventListener('resize',resize);resize();
+function drawGrain(){const img=grainCtx.createImageData(w,h);for(let i=0;i<img.data.length;i+=4){const v=240+Math.random()*12;img.data[i]=img.data[i+1]=img.data[i+2]=v;img.data[i+3]=6;}grainCtx.putImageData(img,0,0);}
+function palette(now){const c=now/32;const i0=Math.floor(c)%palettes.length;const i1=(i0+1)%palettes.length;const f=ease(c-Math.floor(c));const out={};for(const key of ['a','b','c','d']) out[key]=[0,1,2].map(k=>Math.round(mix(palettes[i0][key][k],palettes[i1][key][k],f)));return out;}
+function hideIntro(){intro.classList.add('hidden');}
+function startExperience(){if(started)return;started=true;hideIntro();}
+setTimeout(hideIntro,2200);
+function registerActivity(){idle=0;releaseWrap.classList.remove('dim');}
+let prevPX=.5, prevPY=.5;
+function setPointer(x,y){const nx=clamp(x/w,0,1), ny=clamp(y/h,0,1); const dx=nx-prevPX, dy=ny-prevPY; prevPX=nx; prevPY=ny; targetX=nx; targetY=ny; spinVel += dx*2.2; warpVel += (Math.abs(dx)+Math.abs(dy))*0.5; registerActivity(); startExperience();}
+canvas.addEventListener('pointerdown',e=>{hold=true; prevPX=e.clientX/w; prevPY=e.clientY/h; setPointer(e.clientX,e.clientY); try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+canvas.addEventListener('pointermove',e=>{if(hold)setPointer(e.clientX,e.clientY)});
+canvas.addEventListener('pointerup',()=>hold=false);canvas.addEventListener('pointercancel',()=>hold=false);addEventListener('blur',()=>hold=false);
+
+function drawBackground(g,W,H,pal,cx,cy){const bg=g.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*0.95);bg.addColorStop(0,'rgba(17,21,29,1)');bg.addColorStop(.38,'rgba(11,14,21,1)');bg.addColorStop(.8,'rgba(7,9,14,1)');bg.addColorStop(1,'rgba(5,6,10,1)');g.fillStyle=bg;g.fillRect(0,0,W,H);const mist=g.createRadialGradient(cx,cy,0,cx,cy,Math.min(W,H)*0.75);mist.addColorStop(0,rgba(pal.b,.10));mist.addColorStop(.28,rgba(pal.c,.05));mist.addColorStop(.72,rgba(pal.d,.015));mist.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=mist;g.fillRect(0,0,W,H);}
+
+function glowStroke(g,path,color,alpha,width,blur){g.save();g.strokeStyle=color;g.globalAlpha=alpha;g.lineWidth=width;g.shadowBlur=blur;g.shadowColor=color;g.stroke(path);g.restore();}
+
+function portalPath(g,cx,cy,r,phase,irregularity,flatness){const path=new Path2D();const steps=reduced?64:96;for(let i=0;i<=steps;i++){const a=i/steps*TAU;const petal=Math.sin(a*6+phase)*irregularity;const bend=Math.cos(a*3-phase*.7)*irregularity*.45;const rr=r*(1+petal+bend);const x=cx+Math.cos(a+phase*.04)*rr;const y=cy+Math.sin(a+phase*.04)*rr*flatness;if(i===0)path.moveTo(x,y);else path.lineTo(x,y);}path.closePath();return path;}
+
+function drawPortalLayer(g,cx,cy,min,pal,layer,now){
+  let z=layer.z;
+  const depth = Math.pow(1-z, 1.18);
+  const base = min*(0.06 + depth*0.56*(1+warp*0.10));
+  const alpha = 0.03 + depth*0.20;
+  const flat = 0.84 + depth*0.10 + Math.sin(now*0.2+layer.seed)*0.01;
+  const irregularity = 0.018 + depth*0.050 + warp*0.03;
+  const phase = orbit*(0.4 + depth*0.8) + layer.spin*3 + layer.seed;
+  const path = portalPath(g,cx,cy,base,phase,irregularity,flat);
+  const stroke = depth>0.5 ? pal.a : (depth>0.25 ? pal.b : pal.c);
+  glowStroke(g,path,rgba(stroke,.98),alpha,Math.max(.8,1.6*depth),12+depth*24);
+  if(depth>0.24){
+    g.save();
+    g.globalAlpha = 0.012 + depth*0.024;
+    g.fillStyle = rgba(pal.b,.95);
+    g.shadowBlur = 16+depth*18;
+    g.shadowColor = rgba(pal.a,.18);
+    g.fill(path);
+    g.restore();
+  }
+  if(depth>0.34){
+    g.save();
+    g.strokeStyle = rgba(pal.d,.35);
+    g.globalAlpha = 0.020 + depth*0.04;
+    g.lineWidth = .8;
+    const rr = base*(0.54+Math.sin(now*.23+layer.seed)*0.02);
+    g.beginPath();
+    g.ellipse(cx,cy,rr,rr*(flat*0.92),phase*0.03,0,TAU);
+    g.stroke();
+    g.restore();
+  }
+}
+
+function drawPortal(g,cx,cy,min,pal,now){
+  for(const layer of layers){
+    drawPortalLayer(g,cx,cy,min,pal,layer,now);
+  }
+  // inner portal glow / tunnel mouth
+  const core = g.createRadialGradient(cx,cy,0,cx,cy,min*(0.22+warp*0.03));
+  core.addColorStop(0, rgba(pal.a,.82));
+  core.addColorStop(.08, rgba(pal.b,.32));
+  core.addColorStop(.25, rgba(pal.c,.12));
+  core.addColorStop(.56, rgba(pal.d,.04));
+  core.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle=core; g.beginPath(); g.arc(cx,cy,min*(0.22+warp*0.03),0,TAU); g.fill();
+
+  const eye = g.createRadialGradient(cx,cy,0,cx,cy,min*0.07);
+  eye.addColorStop(0,'rgba(255,255,255,.98)');
+  eye.addColorStop(.18,rgba(pal.b,.78));
+  eye.addColorStop(.55,'rgba(255,255,255,.06)');
+  eye.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle = eye; g.beginPath(); g.arc(cx,cy,min*0.07,0,TAU); g.fill();
+}
+
+function drawDepthHints(g,cx,cy,min,pal,now){
+  g.save(); g.globalCompositeOperation='screen';
+  for(let i=0;i<5;i++){
+    const p=i/4; const r=min*(0.14+p*0.18+Math.sin(now*.1+i)*0.004);
+    g.strokeStyle = rgba(i%2?pal.b:pal.c, .02 + (1-p)*.03);
+    g.lineWidth = 1;
+    g.shadowBlur = 14;
+    g.shadowColor = rgba(pal.a,.06);
+    g.beginPath();
+    g.ellipse(cx,cy,r,r*(0.70+0.05*p),orbit*.05*(i%2?1:-1),0,TAU);
+    g.stroke();
+  }
+  g.restore();
+}
+
+function updateLayers(dt,speed){
+  for(const layer of layers){
+    layer.z += dt*speed*(0.09 + layer.z*0.35);
+    if(layer.z>=1){layer.z-=1; layer.spin=(Math.random()*2-1)*0.2; layer.seed=Math.random()*100;}
+  }
+}
+
+function render(g,W,H,now){
+  const pal=palette(now);
+  const cx=W*(0.5+(pointerX-.5)*0.10);
+  const cy=H*(0.5+(pointerY-.5)*0.10);
+  const min=Math.min(W,H);
+  drawBackground(g,W,H,pal,cx,cy);
+  drawDepthHints(g,cx,cy,min,pal,now);
+  drawPortal(g,cx,cy,min,pal,now);
+  const veil=g.createLinearGradient(0,0,W,H);veil.addColorStop(0,'rgba(255,255,255,.022)');veil.addColorStop(.5,'rgba(255,255,255,0)');veil.addColorStop(1,'rgba(255,255,255,.014)');g.fillStyle=veil;g.fillRect(0,0,W,H);
+}
+
+function capture(){freeze=true;artCount++;const S=1080;const tx=document.createElement('canvas');tx.width=S;tx.height=S;const gx=tx.getContext('2d');render(gx,S,S,t);ac.clearRect(0,0,S,S);ac.fillStyle='#0a0d14';ac.fillRect(0,0,S,S);ac.drawImage(tx,0,0);const fade=ac.createLinearGradient(0,785,0,S);fade.addColorStop(0,'rgba(10,13,20,0)');fade.addColorStop(1,'rgba(10,13,20,.88)');ac.fillStyle=fade;ac.fillRect(0,785,S,295);ac.strokeStyle='rgba(255,255,255,.72)';ac.lineWidth=2;ac.strokeRect(28,28,S-56,S-56);ac.fillStyle='#ffffff';ac.textAlign='left';ac.font='bold 38px Arial, sans-serif';ac.fillText('ZEN VISIONZ',76,932);ac.font='20px Arial, sans-serif';ac.fillStyle='rgba(240,245,255,.88)';ac.fillText('THE END IS YOURS.',78,970);ac.textAlign='right';ac.fillStyle='#ffffff';ac.font='20px Arial, sans-serif';ac.fillText('✦ '+String(artCount).padStart(3,'0'),1000,938);ac.fillStyle='rgba(216,225,238,.88)';ac.fillText(timeText(elapsed),1000,972);$('statTime').textContent=timeText(elapsed);$('statDepth').textContent=String(Math.floor(1+t/18)).padStart(2,'0');$('statNumber').textContent='#'+String(artCount).padStart(3,'0');modal.classList.add('open');}
+releaseBtn.addEventListener('click',()=>{startExperience();capture();});
+$('continue').addEventListener('click',()=>{modal.classList.remove('open');freeze=false;last=performance.now();registerActivity();});
+$('save').addEventListener('click',()=>{art.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='ZEN_VISIONZ_RELEASE_'+String(artCount).padStart(3,'0')+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);},'image/png')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))$('continue').click();});document.addEventListener('visibilitychange',()=>{last=performance.now()});
+
+function frame(now){
+  if(!last)last=now; const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(!freeze){
+    t+=dt*(reduced?.35:1); elapsed+=dt; idle+=dt;
+    if(idle>4.2)releaseWrap.classList.add('dim');
+    pointerX=mix(pointerX,targetX,Math.min(1,dt*2.3)); pointerY=mix(pointerY,targetY,Math.min(1,dt*2.3));
+    energy=mix(energy,hold?.55:.10,dt*2.2);
+    spinVel*=Math.pow(.18,dt); warpVel*=Math.pow(.08,dt);
+    orbit += (0.06 + spinVel)*dt;
+    warp = mix(warp, clamp(warp + warpVel*dt*5 + (hold?0.12:0),0,1.2), dt*3.0);
+    warp *= Math.pow(.45, dt);
+    const speed = 0.42 + energy*0.55 + warp*0.65;
+    updateLayers(dt,speed);
+    if(!hold){targetX=mix(targetX,.5+Math.sin(t*.05)*.012,dt*.20); targetY=mix(targetY,.5+Math.cos(t*.04)*.012,dt*.20);}
+    render(ctx,w,h,t);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
