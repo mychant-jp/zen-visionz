@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#07090d">
+<title>ZEN VISIONZ — Ver.014</title>
+<style>
+:root{--bg:#07090d;--fg:#f7fbff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;touch-action:none}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+#grain{pointer-events:none;opacity:.045;mix-blend-mode:screen}
+#veil{position:fixed;inset:0;pointer-events:none;background:
+  radial-gradient(ellipse 62% 58% at 50% 48%, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,.10) 76%, rgba(0,0,0,.48) 100%),
+  linear-gradient(to bottom, rgba(255,255,255,.035), rgba(255,255,255,0) 14%, rgba(255,255,255,0) 82%, rgba(255,255,255,.02));}
+#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;z-index:4;transition:opacity 1.5s ease}
+#intro.hidden{opacity:0}
+.intro-inner{padding:20px 24px;border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));backdrop-filter:blur(14px);box-shadow:0 0 80px rgba(255,255,255,.08), inset 0 0 26px rgba(255,255,255,.08)}
+.kicker{font-size:10px;letter-spacing:.50em;color:rgba(247,251,255,.82)}
+.title{margin:12px 0 10px;font-size:clamp(28px,10vw,60px);font-weight:900;letter-spacing:.18em}
+.sub{font-size:10px;letter-spacing:.28em;line-height:2;color:rgba(247,251,255,.78)}
+#releaseWrap{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:5;transition:opacity .8s ease}
+#releaseWrap.dim{opacity:.18}
+#release{appearance:none;border:none;background:transparent;color:rgba(255,255,255,.98);font-size:30px;line-height:1;cursor:pointer;padding:12px 16px;border-radius:50%;text-shadow:0 0 12px rgba(255,255,255,.95),0 0 32px rgba(255,255,255,.75),0 0 70px rgba(235,245,255,.52);box-shadow:inset 0 0 14px rgba(255,255,255,.05);transition:transform .16s ease, filter .3s ease, opacity .3s ease}
+#release:active{transform:scale(.94)}#release:hover{filter:brightness(1.12)}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,12,18,.82);backdrop-filter:blur(20px);padding:22px;z-index:10}
+.modal.open{display:flex}
+.panel{width:min(100%,460px);text-align:center}.panel .eyebrow{font-size:10px;letter-spacing:.36em;color:rgba(247,251,255,.82)}.panel h1{margin:12px 0 8px;font-size:clamp(26px,9vw,42px);letter-spacing:.12em;font-weight:850}.panel .subtitle{font-size:11px;line-height:1.8;letter-spacing:.18em;color:rgba(235,241,248,.76);margin:0 0 18px}.artframe{display:block;width:100%;aspect-ratio:1/1;background:#0b0f16;border:1px solid rgba(255,255,255,.24);box-shadow:0 0 70px rgba(255,255,255,.10)}
+.statrow{display:flex;gap:10px;margin-top:14px}.stat{flex:1;padding:12px 8px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03)}.stat small{display:block;font-size:9px;letter-spacing:.14em;color:rgba(225,233,244,.58)}.stat div{margin-top:6px;font-size:16px;font-weight:800}.actions{display:flex;gap:10px;margin-top:16px}.actions button{flex:1;min-height:50px;padding:12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.14em;cursor:pointer}.primary{background:#f4f8ff;color:#11161f;border:1px solid rgba(255,255,255,.62)}.secondary{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.18)}.footer{font-size:10px;letter-spacing:.14em;color:rgba(225,233,246,.45);margin-top:16px}
+@media(max-width:420px){.sub{font-size:9px}#release{font-size:28px;padding:11px 15px}}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="luminous architecture of fine interwoven light"></canvas>
+<canvas id="grain" aria-hidden="true"></canvas>
+<div id="veil"></div>
+<div id="intro"><div class="intro-inner"><div class="kicker">LUMINOUS ARCHITECTURE</div><div class="title">ZEN VISIONZ</div><div class="sub">TOUCH TO BEND THE LIGHT<br>TAP ✦ WHEN IT FEELS COMPLETE</div></div></div>
+<div id="releaseWrap"><button id="release" type="button" aria-label="release">✦</button></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="arttitle"><div class="panel"><div class="eyebrow">YOUR MOMENT, YOUR LIGHT.</div><h1 id="arttitle">RELEASED.</h1><p class="subtitle">THE END IS YOURS.</p><canvas id="art" class="artframe" width="1080" height="1080"></canvas><div class="statrow"><div class="stat"><small>FLOW TIME</small><div id="statTime">00:00</div></div><div class="stat"><small>DEPTH</small><div id="statDepth">01</div></div><div class="stat"><small>ARTWORK</small><div id="statNumber">#001</div></div></div><div class="actions"><button class="primary" id="save" type="button">SAVE ART</button><button class="secondary" id="continue" type="button">KEEP FLOWING</button></div><div class="footer">LET GO. KEEP THE VISION.</div></div></div>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d',{alpha:false});
+const noiseCanvas=document.getElementById('grain'),nctx=noiseCanvas.getContext('2d');
+const intro=document.getElementById('intro'),releaseWrap=document.getElementById('releaseWrap');
+const modal=document.getElementById('modal'),art=document.getElementById('art'),ac=art.getContext('2d');
+const $=id=>document.getElementById(id);
+const TAU=Math.PI*2,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mix=(a,b,v)=>a+(b-a)*v;
+let W=0,H=0,dpr=1,phase=0,elapsed=0,last=0,freeze=false,count=0;
+let pressing=false,px=0,py=0,tx=0,ty=0,power=0,aimPower=0,spin=0,tSpin=0;
+let startX=0,startY=0,activePointer=null,idle=0;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function timer(s){s=Math.floor(s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,1.8);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);noiseCanvas.width=W;noiseCanvas.height=H;let img=nctx.createImageData(W,H);for(let k=0;k<img.data.length;k+=4){let v=225+Math.random()*30;img.data[k]=img.data[k+1]=img.data[k+2]=v;img.data[k+3]=7}nctx.putImageData(img,0,0)}
+addEventListener('resize',resize);resize();
+function dismiss(){intro.classList.add('hidden')}
+setTimeout(dismiss,1950);
+function interact(e){let nx=(e.clientX/W-.5)*2,ny=(e.clientY/H-.5)*2;
+ tx=clamp(nx,-1,1);ty=clamp(ny,-1,1);
+ aimPower=1;idle=0;releaseWrap.classList.remove('dim');dismiss();
+}
+canvas.addEventListener('pointerdown',e=>{if(activePointer!==null)return;activePointer=e.pointerId;pressing=true;startX=e.clientX;startY=e.clientY;interact(e);try{canvas.setPointerCapture(e.pointerId)}catch{}});
+canvas.addEventListener('pointermove',e=>{if(!pressing||e.pointerId!==activePointer)return;
+ tSpin=clamp(tSpin+(e.clientX-startX)/W*.03,-.12,.12);startX=e.clientX;startY=e.clientY;interact(e);
+});
+function stop(e){if(e.pointerId!==activePointer)return;pressing=false;activePointer=null;aimPower=0}
+canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);addEventListener('blur',()=>{pressing=false;activePointer=null;aimPower=0});
+
+function luminous(g,points,rgb,alpha,width,blur){
+ if(points.length<2)return;
+ g.save();g.beginPath();g.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)g.lineTo(points[i][0],points[i][1]);
+ g.strokeStyle=`rgba(${rgb},${alpha})`;g.lineWidth=width;g.lineJoin='round';g.lineCap='round';
+ g.shadowColor=`rgba(${rgb},${Math.min(1,alpha*1.8)})`;g.shadowBlur=blur;g.stroke();g.restore();
+}
+function bg(g,w,h,cx,cy,size,t){
+ let grad=g.createRadialGradient(cx,cy,0,cx,cy,size*.98);
+ grad.addColorStop(0,'#20232c');grad.addColorStop(.28,'#151923');grad.addColorStop(.70,'#090d16');grad.addColorStop(1,'#03050a');g.fillStyle=grad;g.fillRect(0,0,w,h);
+ let halo=g.createRadialGradient(cx,cy-size*.09,0,cx,cy,size*.73);
+ halo.addColorStop(0,'rgba(248,246,230,.19)');halo.addColorStop(.24,'rgba(235,242,255,.085)');halo.addColorStop(.60,'rgba(201,218,250,.026)');halo.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=halo;g.fillRect(0,0,w,h);
+}
+// A softly deforming coordinate system, shared by every filament: the geometry bends as a whole.
+function renderer(g,w,h,t){
+ const sz=Math.min(w*.96,h*.93),centerX=w*.5,centerY=h*.495;
+ const breathe=Math.sin(t*.24)*.035,open=1+breathe+power*.15;
+ const cx=centerX+px*sz*.042,cy=centerY+py*sz*.028;
+ bg(g,w,h,cx,cy,Math.max(w,h),t);
+ function tr(x,y,z=1){
+   const Y=y;
+   const bend=(Math.sin(y*2.1+t*.20)*.028+Math.sin(y*4.9-t*.13)*.012)*z;
+   const shear=px*(.09+.055*(1-Math.abs(y)))+py*y*.035;
+   const flow=Math.sin(t*.17+y*2.8)*.022;
+   const dist=Math.exp(-((x-px*.35)**2+(y-py*.40)**2)*2.5);
+   const X=(x+(bend+shear+px*dist*.14*power))*open;
+   const Z=(y+flow+py*dist*.12*power)*open;
+   const ang=spin*.08;
+   return [cx+sz*.49*(X*Math.cos(ang)-Z*Math.sin(ang)),cy+sz*.58*(X*Math.sin(ang)+Z*Math.cos(ang))];
+ }
+ function curve(f,N=72,z=1){let a=[];for(let i=0;i<=N;i++){let q=i/N;let [x,y]=f(q);a.push(tr(x,y,z))}return a}
+ // A multilayered canopy of slender arching luminous fibres. No hard beam shapes.
+ const N=reduced?12:20;
+ for(let plane=0;plane<3;plane++){
+  let back=plane===0,foreground=plane===2;
+  let planeFade=[.45,.74,1][plane],scale=[1.08,1,.91][plane];
+  for(let k=0;k<N;k++){
+   let v=k/(N-1),side=v*1.65-.825;
+   for(let s of [-1,1]){
+    let f=q=>{
+      let y=1.11-2.23*q;
+      let arch=Math.pow(Math.sin(Math.PI*q),.75);
+      let x=s*(.06+Math.abs(side)*scale*.72+(1-Math.abs(side))*.44*arch);
+      x+=s*.03*Math.sin(t*.19+k*.53+q*7+plane);
+      // alternate fibres cross behind the central axis
+      x+=s*side*.055*Math.sin(q*7+t*.12);
+      return [x,y];
+    };
+    let path=curve(f,reduced?42:76,1+plane*.06);
+    let bright=foreground?'251,250,239':(back?'194,211,238':'235,242,255');
+    let a=planeFade*(.075+.082*Math.sin(v*Math.PI))*(.68+.32*Math.sin(t*.3+k*.17+plane));
+    luminous(g,path,bright,a,back?.62:(foreground?1.0:.77),foreground?15:10);
+   }
+  }
+ }
+ // Continuously evolving interwoven loops create the sense of infinite architecture.
+ let arches=reduced?10:17;
+ for(let band=0;band<arches;band++){
+   let b=band/(arches-1),y0=(b-.5)*1.82;
+   for(let s of [-1,1]){
+    let f=q=>{
+      const ang=q*Math.PI*2;
+      const x=s*(.18+(.49+.09*Math.sin(t*.10+b*4))*Math.cos(ang))*(.88+.12*Math.cos(y0));
+      const y=y0+(.21+.10*Math.sin(b*4+t*.12))*Math.sin(ang);
+      return [x,y];
+    };
+    let a=.055+.045*(1-Math.abs(b-.5)*1.7);
+    luminous(g,curve(f,reduced?46:92),band%3===0?'255,247,225':'232,239,255',a,.8,14);
+   }
+ }
+ // The vertical axis is formed by multiple fine, soft light threads, not a solid bar.
+ for(let i=0;i<(reduced?9:15);i++){
+  const v=(i-(reduced?4:7));
+  const path=curve(q=>{
+   let y=1.22-q*2.44;
+   let taper=.012+.036*Math.pow(Math.abs(y),1.75);
+   let x=v*taper+Math.sin(y*7+t*.19+i*.4)*(.009+.002*Math.abs(v));
+   return [x,y];
+  },100);
+  luminous(g,path,i%4===0?'255,246,226':'246,250,255',.115-(Math.abs(v)*.006),i===7?1.2:.74,20);
+ }
+ // Floating pearl intersections pulse slowly and quietly.
+ for(let k=0;k<34;k++){
+   let y=(k/33)*2.03-1.015;
+   let x=Math.sin(k*2.399+t*.095)*(.10+.57*Math.sin((k%13)/13*Math.PI));
+   let [sx,sy]=tr(x,y);
+   let intensity=(.075+.055*Math.sin(t*.4+k))*Math.max(.35,1-Math.abs(y)*.45);
+   g.save();g.fillStyle=`rgba(253,249,235,${intensity})`;g.shadowColor='rgba(255,250,239,.6)';g.shadowBlur=13;
+   g.beginPath();g.arc(sx,sy,Math.max(.65,sz*.0017),0,TAU);g.fill();g.restore();
+ }
+ // Central pale aperture: brightness, depth, and calm rather than a rotating ring.
+ let p=tr(0,-.01);let radius=sz*(.17+.014*Math.sin(t*.34)+power*.04);
+ let core=g.createRadialGradient(p[0],p[1],0,p[0],p[1],radius);
+ core.addColorStop(0,'rgba(255,255,252,.37)');core.addColorStop(.12,'rgba(255,249,226,.17)');core.addColorStop(.45,'rgba(233,240,255,.07)');core.addColorStop(1,'rgba(255,255,255,0)');
+ g.fillStyle=core;g.beginPath();g.arc(p[0],p[1],radius,0,TAU);g.fill();
+ }
+function capture(){freeze=true;count++;
+  // Preserve exactly the visible composition, without changing its scale or camera.
+  const S=1080,thumb=document.createElement('canvas');thumb.width=S;thumb.height=S;
+  const g=thumb.getContext('2d');renderer(g,S,S,phase);
+  ac.clearRect(0,0,S,S);ac.drawImage(thumb,0,0);
+  let fade=ac.createLinearGradient(0,760,0,S);fade.addColorStop(0,'rgba(5,8,15,0)');fade.addColorStop(1,'rgba(5,8,15,.84)');ac.fillStyle=fade;ac.fillRect(0,760,S,320);
+  ac.strokeStyle='rgba(255,255,255,.55)';ac.lineWidth=2;ac.strokeRect(28,28,1024,1024);
+  ac.fillStyle='#fff';ac.font='bold 37px Arial,sans-serif';ac.textAlign='left';ac.fillText('ZEN VISIONZ',76,928);
+  ac.fillStyle='#f1eadc';ac.font='20px Arial,sans-serif';ac.fillText('THE END IS YOURS.',78,967);
+  ac.textAlign='right';ac.fillStyle='#fff';ac.fillText('✦ '+String(count).padStart(3,'0'),1002,936);ac.fillText(timer(elapsed),1002,973);
+  $('statTime').textContent=timer(elapsed);$('statDepth').textContent=String(Math.floor(1+elapsed/24)).padStart(2,'0');$('statNumber').textContent='#'+String(count).padStart(3,'0');modal.classList.add('open');
+}
+$('release').addEventListener('click',()=>{dismiss();capture()});
+$('continue').addEventListener('click',()=>{modal.classList.remove('open');freeze=false;last=performance.now()});
+$('save').addEventListener('click',()=>{art.toBlob(blob=>{if(!blob)return;let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ZEN_VISIONZ_RELEASE_'+String(count).padStart(3,'0')+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)},'image/png')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))$('continue').click()});
+document.addEventListener('visibilitychange',()=>{last=performance.now()});
+function frame(now){if(!last)last=now;let dt=Math.min(.05,(now-last)/1000);last=now;
+ if(!freeze){elapsed+=dt;phase+=dt*(reduced?.42:1);idle+=dt;if(idle>4)releaseWrap.classList.add('dim');
+  let follow=1-Math.exp(-dt*2.7);px=mix(px,pressing?tx:0,follow);py=mix(py,pressing?ty:0,follow);
+  power=mix(power,pressing?aimPower:0,1-Math.exp(-dt*1.7));spin=mix(spin,tSpin,1-Math.exp(-dt*2));tSpin*=Math.exp(-dt*.7);
+  renderer(ctx,W,H,phase);
+ }
+ requestAnimationFrame(frame)
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
