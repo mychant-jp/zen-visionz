@@ -1,0 +1,198 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#060913"><title>ZEN VISIONZ — Ver.020</title><style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060913;color:#fff;font-family:system-ui,-apple-system,sans-serif;touch-action:none;overscroll-behavior:none}#world{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#veil{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 65% at center,transparent 52%,rgba(0,0,5,.34) 100%)}#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;text-align:center;z-index:2;transition:opacity 1.6s ease}#intro.hide{opacity:0}#intro h1{font-size:clamp(25px,7vw,44px);letter-spacing:.20em;font-weight:650;text-shadow:0 0 28px #fff8;margin:0 0 14px}#intro p{font-size:9px;letter-spacing:.23em;color:#e6edfa;line-height:2;margin:0}#intro .type{padding:26px;background:radial-gradient(ellipse,rgba(5,8,17,.66),transparent 85%)}#release{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);left:50%;transform:translateX(-50%);z-index:4;width:57px;height:57px;background:rgba(8,11,22,.08);border:0;color:#fff;font-size:30px;text-shadow:0 0 9px white,0 0 28px #d6e5ff;cursor:pointer;border-radius:50%;transition:opacity .6s ease,scale .2s ease}#release.quiet{opacity:.38}#release:active{scale:.92}#modal{position:fixed;inset:0;z-index:10;background:rgba(5,7,14,.94);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:18px;overflow:auto;touch-action:pan-y}#modal.open{display:flex}.panel{width:min(100%,460px);text-align:center;max-height:100%;overflow:auto}.eyebrow{color:#dfe7f3;letter-spacing:.30em;font-size:9px;margin:4px 0 8px}.heading{font-size:clamp(24px,7vw,36px);font-weight:650;letter-spacing:.20em;margin:0 0 6px}.sub{color:#aab8c9;font-size:10px;letter-spacing:.20em;margin:0 0 18px}#art{width:min(100%,45vh,430px);aspect-ratio:1;background:#070b13;border:1px solid #ffffff37;display:block;margin:0 auto;box-shadow:0 0 35px #dce9ff22}.details{font-size:10px;letter-spacing:.16em;color:#b9c5d4;margin:15px 0}.actions{display:flex;gap:10px;margin:12px 0}.actions button{border-radius:50px;padding:15px 12px;font-size:11px;font-weight:700;letter-spacing:.10em;flex:1;cursor:pointer;min-height:48px}.primary{background:#eef4fa;color:#10151d;border:1px solid #f2f6fa}.secondary{background:#ffffff12;color:#fff;border:1px solid #ffffff4a}@media(prefers-reduced-motion:reduce){#intro{transition:none}}
+</style></head><body><canvas id="world" aria-label="無数の白い光が循環するインタラクティブアート"></canvas><div id="veil"></div><div id="intro"><div class="type"><h1>ZEN VISIONZ</h1><p>TOUCH THE ENERGY<br>✦ — RELEASE YOUR VISION</p></div></div><button id="release" aria-label="RELEASE: 今の光を作品にする">✦</button><div id="modal" role="dialog" aria-modal="true" aria-labelledby="arttitle"><div class="panel"><div class="eyebrow">THE END IS YOURS.</div><h2 class="heading" id="arttitle">RELEASED</h2><p class="sub">A MOMENT OF LIGHT</p><canvas id="art" width="1080" height="1080"></canvas><p class="details" id="moment">ZEN VISIONZ · 00:00</p><div class="actions"><button class="primary" id="save">SAVE ART</button><button class="secondary" id="continue">KEEP FLOWING</button></div></div></div>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('world'),g=canvas.getContext('2d',{alpha:false});
+const intro=document.getElementById('intro'),release=document.getElementById('release'),modal=document.getElementById('modal'),art=document.getElementById('art'),ag=art.getContext('2d');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smooth=(a,b,q)=>a+(b-a)*Math.min(1,q);
+const TAU=2*Math.PI;
+let W=0,H=0,dpr=1,t=0,elapsed=0,last=0,paused=false;
+let pointer={x:.5,y:.5,px:.5,py:.5,down:false,force:0,swirl:0,dx:0,dy:0,hold:0};
+let quietTimer=0,artNumber=0;
+let wavePulse=0, gestureX=0, gestureY=0;
+let seed=218;
+function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+const strands=Array.from({length:256},(_,i)=>({
+ u:rand(),depth:rand(),offset:rand()*2-1,freq:1+rand()*2.7,phase:rand()*TAU,
+ speed:.16+rand()*.33,shape:rand(),white:rand(),side:i%2?1:-1,
+ lane:rand(),width:.25+rand()*.72,gold:rand(),cool:rand(),kind:i%10<4?0:(i%10<7?1:2),direction:i%3===0?-1:1
+}));
+const dust=Array.from({length:228},()=>({s:rand(),u:rand(),phase:rand()*TAU,scale:rand(),side:rand()>.5?1:-1}));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,Math.max(W,H)>1300?1.35:1.7);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);g.setTransform(dpr,0,0,dpr,0,0);}addEventListener('resize',resize,{passive:true});resize();
+function move(e){const nx=clamp(e.clientX/W,0,1),ny=clamp(e.clientY/H,0,1);pointer.dx=clamp((nx-pointer.px)*8,-1,1);pointer.dy=clamp((ny-pointer.py)*8,-1,1);pointer.px=nx;pointer.py=ny;pointer.x=nx;pointer.y=ny;pointer.force=Math.min(1.55,pointer.force+.28+Math.hypot(pointer.dx,pointer.dy)*.48);pointer.swirl=clamp(pointer.swirl+pointer.dx*.48,-1.25,1.25);gestureX=clamp(gestureX+pointer.dx*.23,-.45,.45);gestureY=clamp(gestureY+pointer.dy*.20,-.45,.45);wavePulse=Math.min(1,wavePulse+.18);quietTimer=0;release.classList.remove('quiet');intro.classList.add('hide');}
+canvas.addEventListener('pointerdown',e=>{pointer.down=true;pointer.hold=0;pointer.px=e.clientX/W;pointer.py=e.clientY/H;move(e);try{canvas.setPointerCapture(e.pointerId)}catch(_){}},{passive:true});
+canvas.addEventListener('pointermove',e=>{if(pointer.down)move(e)},{passive:true});
+function lift(){pointer.down=false;pointer.hold=0;}
+canvas.addEventListener('pointerup',lift);canvas.addEventListener('pointercancel',lift);addEventListener('blur',lift);
+setTimeout(()=>intro.classList.add('hide'),2400);
+function rgba(r,gg,b,a){return `rgba(${r},${gg},${b},${a})`;}
+function pos(s,z,time,core,span,interaction){
+ const {cx,cy,scale}=core;
+ const v=(z-.5)*2, depth=s.depth;
+ const breath=1+.065*Math.sin(time*.21+s.phase*.42);
+ let x,y;
+ // Three overlapping currents: ascending/descending filaments, cross-flow,
+ // and broad orbital currents. Their paths continuously morph instead of scrolling.
+ if(s.kind===0){
+   const neck=Math.pow(Math.abs(v),1.08);
+   const envelope=(.16+.69*neck)*(.25+depth*.79);
+   const spread=(.08+s.u*.78)*envelope;
+   y=v*scale*(.66+.27*s.shape);
+   x=s.side*spread*span*breath;
+   x+=span*(.10+.08*depth)*Math.sin(v*2.8+time*(.16+.05*s.speed)+s.phase)*(0.48+depth*.52);
+   x+=span*.075*Math.sin(v*5.2-time*.24+s.phase*.55);
+   y+=scale*.045*Math.sin(time*.25+v*4+s.phase);
+ }else if(s.kind===1){
+   x=v*span*(.65+.32*s.shape);
+   const lane=(s.lane-.5)*scale*.90;
+   y=lane+scale*(.09+.12*depth)*Math.sin(v*(2.5+s.freq)+time*.21*s.direction+s.phase);
+   y+=scale*.055*Math.sin(v*6.2-time*.13+s.phase*.5);
+   x+=span*.04*Math.sin(time*.18+v*5+s.phase);
+ }else{
+   const angle=v*Math.PI*(1.25+s.shape*.72) + s.phase + time*.15*s.direction;
+   const r=span*(.14+.12*s.u+(.23+.13*depth)*(z));
+   const warp=1+.16*Math.sin(3*angle-time*.16+s.phase);
+   x=Math.cos(angle)*r*warp + s.side*span*.10*Math.sin(time*.13+s.phase);
+   y=Math.sin(angle)*r*warp*(scale/span)*(.52+.23*depth);
+ }
+ // Coherent global breathing moves entire field, with no hard rectangular core.
+ const bend=.034*Math.sin(time*.13+s.phase*.2+v*2.2);
+ x+=span*bend;
+ // Touch creates a gentle displacement across neighboring filaments, rather than jitter.
+ const broadInfluence=Math.exp(-((v-(interaction.y-.5)*1.4)**2)*.65);
+ x+=gestureX*span*.18*broadInfluence;
+ y+=gestureY*scale*.12*broadInfluence;
+ const px=(interaction.x-.5)*span*1.65;
+ const py=(interaction.y-.5)*scale*1.75;
+ const dx=x-px,dy=y-py;
+ const influence=Math.exp(-(dx*dx/(span*span*.52)+dy*dy/(scale*scale*.48)));
+ const touch=interaction.force*influence;
+ x+=interaction.dx*touch*span*.26;
+ y+=interaction.dy*touch*scale*.21;
+ const a=interaction.swirl*touch*.40;
+ const rx=x-px, ry=y-py;
+ x+=-ry*a*.78;
+ y+=rx*a*.54;
+ x+=(px-x)*touch*interaction.hold*.19;
+ y+=(py-y)*touch*interaction.hold*.20;
+ return [cx+x,cy+y];
+}
+function draw(time,ctx,width,height,detail=1){
+ const cx=width*.5+Math.sin(time*.08)*width*.009;
+ const cy=height*.49;
+ const scale=Math.max(height*.74,width*.67),span=Math.min(width*1.12,scale*.92);
+ const core={cx,cy,scale};
+ const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(width,height)*.85);
+ bg.addColorStop(0,'#11192a');bg.addColorStop(.36,'#090f1c');bg.addColorStop(.72,'#050813');bg.addColorStop(1,'#03050a');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,width,height);
+ ctx.globalCompositeOperation='screen';
+ let aura=ctx.createRadialGradient(cx,cy,0,cx,cy,scale*.60);
+ aura.addColorStop(0,'rgba(252,252,255,.16)');
+ aura.addColorStop(.18,'rgba(223,235,255,.12)');
+ aura.addColorStop(.42,'rgba(178,208,255,.045)');
+ aura.addColorStop(.58,'rgba(255,238,210,.028)');
+ aura.addColorStop(1,'rgba(0,0,0,0)');
+ ctx.fillStyle=aura;ctx.fillRect(0,0,width,height);
+ const interaction={...pointer};
+ const n=detail?strands.length:200,steps=detail?45:32;
+ for(let i=0;i<n;i++){
+   const s=strands[i];
+   const b=s.lane*.2;
+   const path=new Path2D();
+   for(let j=0;j<=steps;j++){
+     const z=j/steps;
+     const [x,y]=pos(s,z,time+b,core,span,interaction);
+     if(j===0)path.moveTo(x,y);else path.lineTo(x,y);
+   }
+   const whiteAlpha=.095+s.white*.19+interaction.hold*.095;
+   if(i%6===0){
+     ctx.strokeStyle=rgba(196,219,255,.042+interaction.hold*.022);
+     ctx.lineWidth=4.1+s.width*3.2;
+     ctx.stroke(path);
+   }
+   if(i%11===0){
+     ctx.strokeStyle=rgba(255,239,213,.034+interaction.hold*.018);
+     ctx.lineWidth=2.4+s.width*1.8;
+     ctx.stroke(path);
+   }
+   const rr=242 + Math.floor(s.gold*10);
+   const gg=245 + Math.floor(s.gold*7 - s.cool*3);
+   const bb=250 - Math.floor(s.gold*8) + Math.floor(s.cool*8);
+   ctx.strokeStyle=rgba(rr,gg,bb,whiteAlpha);
+   ctx.lineWidth=.36+s.width*.53;
+   ctx.stroke(path);
+ }
+ for(let i=0;i<dust.length;i++){
+   const p=dust[i],s=strands[(i*17)%strands.length];
+   const z=(p.u+time*(.010+p.scale*.015)*s.direction+10)%1;
+   const [x,y]=pos(s,z,time,core,span,interaction);
+   if(x<0||x>width||y<0||y>height)continue;
+   const rad=.26+p.scale*.95+interaction.hold*.45;
+   const tint=(i%9===0)?[255,244,220]:(i%5===0?[228,240,255]:[255,255,255]);
+   const alpha=.18+p.scale*.34+interaction.hold*.04;
+   ctx.beginPath();ctx.fillStyle=rgba(tint[0],tint[1],tint[2],alpha);ctx.arc(x,y,rad,0,TAU);ctx.fill();
+ }
+ // Central energy is a soft, elliptical volume, NOT a rectangle: no vertical edges.
+ const bright=.78+Math.sin(time*.43)*.15+pointer.hold*.36+wavePulse*.12;
+ ctx.save();
+ ctx.translate(cx,cy);
+ ctx.scale(.58,2.4);
+ const coreGlow=ctx.createRadialGradient(0,0,0,0,0,span*.42);
+ coreGlow.addColorStop(0,rgba(255,251,240,.23*bright));
+ coreGlow.addColorStop(.18,rgba(240,248,255,.10*bright));
+ coreGlow.addColorStop(.48,rgba(220,236,255,.036*bright));
+ coreGlow.addColorStop(1,'rgba(255,255,255,0)');
+ ctx.fillStyle=coreGlow;
+ ctx.beginPath();ctx.arc(0,0,span*.42,0,TAU);ctx.fill();
+ ctx.restore();
+ // Broad transverse glow subtly links the center to the surroundings.
+ const across=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(width,height)*.6);
+ across.addColorStop(0,rgba(241,245,255,.055*bright));
+ across.addColorStop(.32,rgba(232,243,255,.026*bright));
+ across.addColorStop(1,'rgba(255,255,255,0)');
+ ctx.fillStyle=across;ctx.fillRect(0,0,width,height);
+ if(pointer.force>.02){
+  const xx=pointer.x*width,yy=pointer.y*height,r=width*(.20+pointer.hold*.18);
+  const a=ctx.createRadialGradient(xx,yy,0,xx,yy,r);
+  a.addColorStop(0,rgba(255,255,255,.12*pointer.force+.25*pointer.hold));
+  a.addColorStop(.16,rgba(245,250,255,.050*pointer.force+.09*pointer.hold));
+  a.addColorStop(.34,rgba(255,241,212,.022*pointer.force+.035*pointer.hold));
+  a.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=a;ctx.beginPath();ctx.arc(xx,yy,r,0,TAU);ctx.fill();
+ }
+ // A subtle, soft radial echo follows the gesture and fades without hard boundaries.
+ if(wavePulse>.015){
+  const xx=pointer.x*width,yy=pointer.y*height;
+  const rr=Math.min(width,height)*(.16+(1-wavePulse)*.24);
+  const soft=ctx.createRadialGradient(xx,yy,rr*.25,xx,yy,rr);
+  soft.addColorStop(0,'rgba(255,255,255,0)');
+  soft.addColorStop(.55,rgba(239,247,255,wavePulse*.025));
+  soft.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=soft;ctx.beginPath();ctx.arc(xx,yy,rr,0,TAU);ctx.fill();
+ }
+ ctx.globalCompositeOperation='source-over';
+}
+function frame(now){if(!last)last=now;const dt=Math.min(.045,(now-last)/1000);last=now;if(!paused){t+=dt*(reduce?.5:1);elapsed+=dt;quietTimer+=dt;if(quietTimer>4)release.classList.add('quiet');pointer.force=smooth(pointer.force, pointer.down?.56:0,dt*(pointer.down?1.2:1.55));pointer.hold=smooth(pointer.hold,pointer.down?1:0,dt*(pointer.down?1.05:1.8));pointer.dx*=Math.pow(.13,dt);pointer.dy*=Math.pow(.13,dt);pointer.swirl*=Math.pow(.22,dt);gestureX*=Math.pow(.12,dt);gestureY*=Math.pow(.12,dt);wavePulse*=Math.pow(.22,dt);draw(t,g,W,H,W>500?1:0);}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+function clock(sec){let n=Math.floor(sec);return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;}
+release.addEventListener('click',()=>{
+ paused=true;artNumber++;
+ const s=1080;
+ const off=document.createElement('canvas');off.width=1080;off.height=1080;const c=off.getContext('2d');
+ const side=Math.min(canvas.width,canvas.height);const sx=(canvas.width-side)/2,sy=(canvas.height-side)/2;
+ c.drawImage(canvas,sx,sy,side,side,0,0,s,s);
+ const fade=c.createLinearGradient(0,770,0,s);fade.addColorStop(0,'#05091300');fade.addColorStop(1,'#050913db');c.fillStyle=fade;c.fillRect(0,770,s,310);
+ c.fillStyle='#fff';c.textAlign='left';c.font='600 35px Arial,sans-serif';c.fillText('ZEN VISIONZ',64,960);
+ c.font='18px Arial,sans-serif';c.fillStyle='#dae7f8';c.fillText('THE END IS YOURS.',65,994);
+ c.textAlign='right';c.fillStyle='#fff';c.fillText('✦ '+clock(elapsed),1010,984);
+ ag.clearRect(0,0,s,s);ag.drawImage(off,0,0);document.getElementById('moment').textContent=`ZEN VISIONZ · ${clock(elapsed)} · #${String(artNumber).padStart(3,'0')}`;
+ modal.classList.add('open');
+});
+document.getElementById('continue').addEventListener('click',()=>{modal.classList.remove('open');paused=false;last=performance.now();quietTimer=0;release.classList.remove('quiet');});
+document.getElementById('save').addEventListener('click',()=>{art.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`ZEN_VISIONZ_RELEASE_${String(artNumber).padStart(3,'0')}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))document.getElementById('continue').click()});
+document.addEventListener('visibilitychange',()=>{last=performance.now()});
+})();
+</script></body></html>
