@@ -1,0 +1,402 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#060913"><title>ZEN VISIONZ — Ver.031</title><style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060913;color:#fff;font-family:system-ui,-apple-system,sans-serif;touch-action:none;overscroll-behavior:none}#world{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#veil{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 65% at center,transparent 52%,rgba(0,0,5,.34) 100%)}#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;text-align:center;z-index:2;transition:opacity 1.6s ease}#intro.hide{opacity:0}#intro h1{font-size:clamp(25px,7vw,44px);letter-spacing:.20em;font-weight:650;text-shadow:0 0 28px #fff8;margin:0 0 14px}#intro p{font-size:9px;letter-spacing:.23em;color:#e6edfa;line-height:2;margin:0}#intro .type{padding:26px;background:radial-gradient(ellipse,rgba(5,8,17,.66),transparent 85%)}#release{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);left:50%;transform:translateX(-50%);z-index:4;width:57px;height:57px;background:rgba(8,11,22,.08);border:0;color:#fff;font-size:30px;text-shadow:0 0 9px white,0 0 28px #d6e5ff;cursor:pointer;border-radius:50%;transition:opacity .6s ease,scale .2s ease}#release.quiet{opacity:.38}#release:active{scale:.92}#modal{position:fixed;inset:0;z-index:10;background:rgba(5,7,14,.94);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:18px;overflow:auto;touch-action:pan-y}#modal.open{display:flex}.panel{width:min(100%,460px);text-align:center;max-height:100%;overflow:auto}.eyebrow{color:#dfe7f3;letter-spacing:.30em;font-size:9px;margin:4px 0 8px}.heading{font-size:clamp(24px,7vw,36px);font-weight:650;letter-spacing:.20em;margin:0 0 6px}.sub{color:#aab8c9;font-size:10px;letter-spacing:.20em;margin:0 0 18px}#art{width:min(100%,45vh,430px);aspect-ratio:1;background:#070b13;border:1px solid #ffffff37;display:block;margin:0 auto;box-shadow:0 0 35px #dce9ff22}.details{font-size:10px;letter-spacing:.16em;color:#b9c5d4;margin:15px 0}.actions{display:flex;gap:10px;margin:12px 0}.actions button{border-radius:50px;padding:15px 12px;font-size:11px;font-weight:700;letter-spacing:.10em;flex:1;cursor:pointer;min-height:48px}.primary{background:#eef4fa;color:#10151d;border:1px solid #f2f6fa}.secondary{background:#ffffff12;color:#fff;border:1px solid #ffffff4a}@media(prefers-reduced-motion:reduce){#intro{transition:none}}
+
+/* Interactive artwork: disable iOS long-press selection and callout. */
+html,body,#world,#veil,#intro,#release,#modal,#art,.panel,button{
+  -webkit-user-select:none!important;user-select:none!important;
+  -webkit-touch-callout:none!important;
+  -webkit-user-drag:none;
+}
+#world{touch-action:none;-webkit-touch-callout:none;}
+
+/* The artwork stays primary; support opens as a separate, reversible view. */
+.support-divider{height:1px;background:linear-gradient(90deg,transparent,#e3efff25,transparent);margin:20px 0 15px}
+.support-link{border:0;background:transparent;color:#c5d1e3;letter-spacing:.19em;font-size:10px;font-weight:600;cursor:pointer;min-height:44px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px}
+.support-link .heart{font-size:14px;opacity:.82}
+.support-caption{font-size:9px;letter-spacing:.05em;color:#8091a9;margin:1px 0 2px}
+#modal.support-mode .panel{display:none}
+#support-screen{display:none;width:min(100%,430px);max-height:100%;overflow:auto;text-align:center;padding:12px 7px 20px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#modal.support-mode #support-screen{display:block}
+.support-screen-top{display:flex;align-items:center;justify-content:flex-start;margin-bottom:52px}
+.support-back{border:1px solid #ffffff28;border-radius:999px;background:#ffffff07;color:#dbe6f5;padding:12px 17px;font-size:10px;letter-spacing:.13em;min-height:44px;cursor:pointer}
+.support-glow{margin:0 auto 26px;width:85px;height:85px;display:grid;place-items:center;font-size:33px;color:#f2f6ff;text-shadow:0 0 18px #d0e2ff,0 0 44px #d1e6ff; background:radial-gradient(circle,#ffffff24 0%,#c3ddff0a 37%,transparent 72%)}
+.support-heading{margin:0 0 14px;font-size:clamp(19px,5.6vw,26px);letter-spacing:.18em;font-weight:600;color:#f2f6ff}
+.support-copy{font-size:12px;color:#aebcd1;line-height:2;margin:0 auto 34px;max-width:310px}
+.support-input-label{display:block;font-size:10px;letter-spacing:.18em;color:#b9c9df;text-align:left;margin:0 0 10px}
+.support-input-wrap{display:flex;align-items:center;gap:10px;border:1px solid #d9e9ff50;border-radius:14px;padding:14px 18px;background:#ffffff08;color:#f0f4ff}
+.support-input-wrap span{font-size:24px}.support-input-wrap input{min-width:0;width:100%;border:0;background:transparent;color:#fff;font-size:25px;outline:none;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield;-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
+.support-input-wrap input::-webkit-inner-spin-button,.support-input-wrap input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.support-state{font-size:10px;color:#8e9fb5;line-height:1.8;margin:15px 0 22px;min-height:18px}
+.support-pay{width:100%;padding:16px 12px;border:1px solid #ffffff55;border-radius:999px;background:#dfe9f6;color:#152033;letter-spacing:.11em;font-size:11px;font-weight:700;min-height:50px}
+.support-pay:disabled{opacity:.52;cursor:not-allowed}
+.support-note{font-size:10px;color:#798aa4;line-height:1.9;margin:22px 0 0}
+#amount{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
+
+/* Export formats are optional and remain visually subordinate to the artwork. */
+.export-formats{display:flex;justify-content:center;gap:7px;margin:2px auto 10px}
+.format-option{background:transparent;color:#8e9db1;border:1px solid #ffffff32;border-radius:999px;padding:9px 12px;font-size:9px;letter-spacing:.11em;min-height:36px;cursor:pointer}
+.format-option.selected{background:#ffffff18;color:#f2f6ff;border-color:#e3edff66}
+.save-feedback{font-size:10px;letter-spacing:.10em;color:#bacbdf;min-height:0;margin:0;transition:opacity .25s}
+.save-feedback:empty{display:none}
+#art.portrait{aspect-ratio:9/16;width:auto;height:min(44vh,480px);max-width:100%;object-fit:contain}
+.panel{padding-bottom:calc(env(safe-area-inset-bottom) + 18px)}
+.support-divider{margin:22px 0 10px}
+.support-link{min-height:47px}
+.support-caption{padding-bottom:12px}
+@media (max-height:680px){#art{width:min(100%,38vh,360px)}#art.portrait{height:min(38vh,390px)}.support-divider{margin-top:16px}}
+</style></head><body><canvas id="world" aria-label="自然界の法則を感じる光のインタラクティブアート"></canvas><div id="veil"></div><div id="intro"><div class="type"><h1>ZEN VISIONZ</h1><p>NATURAL LAW EDITION<br>✦ — RELEASE YOUR VISION</p></div></div><button id="release" aria-label="RELEASE: 今の光を作品にする">✦</button><div id="modal" role="dialog" aria-modal="true" aria-labelledby="arttitle"><div class="panel"><div class="eyebrow">THE END IS YOURS.</div><h2 class="heading" id="arttitle">RELEASED</h2><p class="sub">A MOMENT OF LIGHT</p><canvas id="art" width="1080" height="1080"></canvas><p class="details" id="moment">ZEN VISIONZ · 00:00</p><div class="export-formats" role="group" aria-label="保存画像の縦横比"><button type="button" class="format-option selected" data-format="square" aria-pressed="true">SQUARE 1:1</button><button type="button" class="format-option" data-format="portrait" aria-pressed="false">WALLPAPER 9:16</button></div><p class="save-feedback" id="save-feedback" aria-live="polite"></p><div class="actions"><button class="primary" id="save">SAVE ART</button><button class="secondary" id="continue">KEEP FLOWING</button></div>
+<div class="support-divider"></div>
+<button type="button" class="support-link" id="support-open" aria-controls="support-screen"><span class="heart">♡</span> SUPPORT THE ART</button>
+<p class="support-caption">Your support keeps the light flowing.</p>
+</div>
+<section id="support-screen" aria-label="SUPPORT THE ART" aria-hidden="true">
+  <div class="support-screen-top"><button class="support-back" id="support-close" type="button">← BACK TO ART</button></div>
+  <div class="support-glow" aria-hidden="true">✧</div>
+  <h3 class="support-heading">KEEP THE LIGHT<br>FLOWING.</h3>
+  <p class="support-copy">If this experience moved you,<br>support its creation.<br>Any amount. Entirely your choice.</p>
+  <label for="amount" class="support-input-label">YOUR AMOUNT · JPY</label>
+  <div class="support-input-wrap"><span>¥</span><input id="amount" type="number" inputmode="numeric" pattern="[0-9]*" min="1" step="1" placeholder="ENTER AMOUNT" autocomplete="off"></div>
+  <p class="support-state" id="support-status" role="status">Payments are not available yet.</p>
+  <button class="support-pay" id="support-pay" type="button" disabled>SUPPORT — COMING SOON</button>
+  <p class="support-note">ZEN VISIONZ is free to enjoy.<br>Supporting is always optional.</p>
+</section>
+</div>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('world'),g=canvas.getContext('2d',{alpha:false});
+const intro=document.getElementById('intro'),release=document.getElementById('release'),modal=document.getElementById('modal'),art=document.getElementById('art'),ag=art.getContext('2d');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smooth=(a,b,q)=>a+(b-a)*Math.min(1,q);
+const TAU=2*Math.PI;
+const PHI=(1+Math.sqrt(5))/2;
+const INV_PHI=1/PHI;
+const FIB=[1,2,3,5,8,13,21,34,55,89];
+const FIB_SUM=FIB.reduce((a,b)=>a+b,0);
+const FIB_ACC=[];let acc=0;for(const f of FIB){acc+=f/FIB_SUM;FIB_ACC.push(acc);} 
+let W=0,H=0,dpr=1,t=0,elapsed=0,last=0,paused=false;
+let pointer={x:.5,y:.5,px:.5,py:.5,down:false,force:0,swirl:0,dx:0,dy:0,hold:0};
+let quietTimer=0,artNumber=0;
+let wavePulse=0, gestureX=0, gestureY=0, afterglow=0;
+// A slowly evolving current remembers the latest touch, then returns to its own flow.
+let echoX=.5,echoY=.5,echoEnergy=0,echoSpin=0;
+// Each opening begins from a fresh seed; the same path is not replayed.
+let seed=(()=>{try{const data=new Uint32Array(1);crypto.getRandomValues(data);return data[0]||233;}catch(_){return (Math.random()*4294967295)>>>0||233;}})();
+function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+function fibMap(v){ for(let i=0;i<FIB_ACC.length;i++) if(v<=FIB_ACC[i]) return i; return FIB_ACC.length-1; }
+function fibLaneNormalized(idx){ return (FIB_ACC[idx]-0.5)*2; }
+const strands=Array.from({length:369},(_,i)=>{
+  const r=rand(), fibIndex=fibMap(r), fibWeight=FIB[fibIndex]/89;
+  return {
+    u:rand(), depth:rand(), offset:rand()*2-1, freq:1+rand()*2.7, phase:rand()*TAU,
+    speed:.16+rand()*.33, shape:rand(), white:rand(), side:i%2?1:-1,
+    lane:rand(), width:.22+rand()*.68, gold:rand(), cool:rand(),
+    kind:i%12<5?0:(i%12<8?1:2), direction:i%3===0?-1:1,
+    fibIndex, fibWeight, laneBias:fibLaneNormalized(fibIndex),
+    fractal: rand()>.55, childScale:.34+rand()*.22, childShift:(rand()*2-1)*0.12
+  };
+});
+// Evolving atmospheric currents: independent, gently eased random destinations.
+// Unlike a periodic animation, these targets change without a fixed loop.
+const currents=Array.from({length:2},(_,i)=>({
+ phase:rand()*TAU, x:(rand()-.5)*.8, y:(rand()-.5)*.8,
+ vx:0, vy:0, tx:(rand()-.5)*1.15, ty:(rand()-.5)*1.15,
+ remaining:7+rand()*16, freq:.65+rand()*1.6, sign:i%2?1:-1
+}));
+let worldAngle=(rand()-.5)*.50;
+let worldAngleTarget=worldAngle;
+let worldAngleCountdown=12+rand()*16;
+let worldBreath=rand()*TAU;
+t=rand()*470;
+function evolveCurrents(dt){
+ for(const c of currents){
+   c.remaining-=dt;
+   if(c.remaining<=0){c.tx=(rand()-.5)*1.3;c.ty=(rand()-.5)*1.3;c.remaining=8+rand()*23;}
+   const a=1-Math.exp(-dt*.11);
+   c.x+=(c.tx-c.x)*a;c.y+=(c.ty-c.y)*a;
+ }
+ worldAngleCountdown-=dt;
+ if(worldAngleCountdown<=0){worldAngleTarget=(rand()-.5)*.65;worldAngleCountdown=14+rand()*28;}
+ worldAngle+=(worldAngleTarget-worldAngle)*(1-Math.exp(-dt*.055));
+}
+const dust=Array.from({length:233},()=>({s:rand(),u:rand(),phase:rand()*TAU,scale:rand(),side:rand()>.5?1:-1}));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,Math.max(W,H)>1300?1.35:1.7);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);g.setTransform(dpr,0,0,dpr,0,0);}addEventListener('resize',resize,{passive:true});resize();
+function move(e){const nx=clamp(e.clientX/W,0,1),ny=clamp(e.clientY/H,0,1);pointer.dx=clamp((nx-pointer.px)*8,-1,1);pointer.dy=clamp((ny-pointer.py)*8,-1,1);pointer.px=nx;pointer.py=ny;pointer.x=nx;pointer.y=ny;pointer.force=Math.min(1.55,pointer.force+.28+Math.hypot(pointer.dx,pointer.dy)*.48);pointer.swirl=clamp(pointer.swirl+pointer.dx*.48,-1.25,1.25);gestureX=clamp(gestureX+pointer.dx*.23,-.45,.45);gestureY=clamp(gestureY+pointer.dy*.20,-.45,.45);wavePulse=Math.min(1,wavePulse+.18);afterglow=Math.min(1,afterglow+.15+Math.hypot(pointer.dx,pointer.dy)*.08);echoX=nx;echoY=ny;echoEnergy=Math.min(1,echoEnergy+.24);echoSpin=clamp(echoSpin+pointer.dx*.28,-.85,.85);quietTimer=0;release.classList.remove('quiet');intro.classList.add('hide');}
+canvas.addEventListener('pointerdown',e=>{if(e.cancelable)e.preventDefault();pointer.down=true;pointer.hold=0;pointer.px=e.clientX/W;pointer.py=e.clientY/H;move(e);try{canvas.setPointerCapture(e.pointerId)}catch(_){}},{passive:false});
+canvas.addEventListener('pointermove',e=>{if(pointer.down)move(e)},{passive:true});
+function lift(){pointer.down=false;pointer.hold=0;}
+canvas.addEventListener('pointerup',lift);canvas.addEventListener('pointercancel',lift);addEventListener('blur',lift);
+// Safari on iOS may otherwise display text selection, lookup or context menus
+// when the user holds a finger on the animation.
+for (const eventName of ['contextmenu','selectstart','dragstart']) {
+ document.addEventListener(eventName,e=>{if(e.cancelable)e.preventDefault();},{capture:true});
+}
+canvas.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault();},{passive:false});
+setTimeout(()=>intro.classList.add('hide'),2400);
+function rgba(r,gg,b,a){return `rgba(${r},${gg},${b},${a})`;}
+function pos(s,z,time,core,span,interaction,scaleMul=1, branchShift=0){
+ const {cx,cy,scale}=core;
+ const v=(z-.5)*2, depth=s.depth;
+ const longA=Math.sin(time*.052+s.phase*.09);
+ const longB=Math.sin(time*.052*INV_PHI+s.phase*.17);
+ // Three very slow, non-matching tides shape the space over several minutes.
+ const epoch=Math.sin(time*.021+s.phase*.11)*Math.sin(time*.013*INV_PHI+s.lane*.8);
+ const drift=Math.sin(time*.031+s.phase*.17)*Math.cos(time*.019*INV_PHI+s.fibIndex*.17);
+ const breath=1 + (.05 + .02*longA + .01*longB + .010*epoch)*Math.sin(time*(.17 + .03*s.fibWeight)+s.phase*.42);
+ let x,y;
+ const laneInfluence = s.laneBias*0.5 + (s.lane-.5)*0.35;
+ if(s.kind===0){
+   const neck=Math.pow(Math.abs(v), 1.02 + 0.12*s.fibWeight);
+   const envelope=(.14 + (.62 + .08*s.fibWeight)*neck) * (.24 + depth*.80);
+   const spread=(.07 + s.u*.76 + .03*s.fibWeight) * envelope;
+   y=v*scale*(.64 + .24*s.shape + .02*s.fibWeight);
+   x=s.side*spread*span*breath;
+   x += span*(.09 + .07*depth + .02*s.fibWeight)*Math.sin(v*(2.3+PHI) + time*(.14 + .06*s.speed) + s.phase) * (.45 + depth*.58);
+   x += span*.06*Math.sin(v*(3+PHI*2) - time*.19 + s.phase*.55);
+   y += scale*.040*Math.sin(time*.25 + v*(3.4+PHI) + s.phase);
+ }else if(s.kind===1){
+   x=v*span*(.60 + .30*s.shape + .03*s.fibWeight);
+   const lane=(laneInfluence)*scale*.82;
+   y=lane + scale*(.09 + .11*depth + .014*longA)*Math.sin(v*(2.3+s.freq*INV_PHI) + time*.20*s.direction + s.phase);
+   y += scale*.05*Math.sin(v*(5+PHI) - time*.12 + s.phase*.5);
+   x += span*.045*Math.sin(time*.18 + v*(4.2+PHI) + s.phase);
+ }else{
+   const angle=v*Math.PI*(1.12 + s.shape*.70 + s.fibWeight*.12) + s.phase + time*.14*s.direction;
+   // Beyond the visible field, the spiral expands smoothly rather than terminating.
+   // Its natural in-frame shape is unchanged for z between 0 and 1.
+   const beyond=Math.max(0,Math.abs(v)-1);
+   const r=span*(.13 + .12*s.u + (.20 + .15*depth + .018*longB)*z) + beyond*beyond*span*1.85;
+   const warp=1 + .16*Math.sin((3+INV_PHI)*angle - time*.15 + s.phase);
+   x=Math.cos(angle)*r*warp + s.side*span*(.08 + .02*s.fibWeight)*Math.sin(time*.12 + s.phase);
+   y=Math.sin(angle)*r*warp*(scale/span)*(.50 + .23*depth);
+ }
+ // Fibonacci-weighted drift gives grouped bands like natural clustering.
+ x += span*(laneInfluence*.09 + branchShift*.08);
+ // A smooth, continuously evolving field moves neighboring filaments together.
+ // It is based on slowly changing currents, not independent per-line jitter.
+ let fx=0, fy=0;
+ for(let k=0;k<currents.length;k++){
+   const c=currents[k];
+   const wave=Math.sin(v*(c.freq+INV_PHI) + c.phase + time*(.055+.009*k) + x/(span*1.35));
+   const wave2=Math.cos(v*(c.freq*.8+1) - c.phase + time*(.043+.008*k) + y/(scale*1.6));
+   fx += (wave*c.x + wave2*c.y*.45)*(.27+.08*s.depth);
+   fy += (wave2*c.y - wave*c.x*.35)*(.21+.06*s.depth);
+ }
+ x += span*.075*fx;
+ y += scale*.062*fy;
+ // The field slowly changes orientation while remaining outside a rigid rotation.
+ const twist=worldAngle*(.30+.33*Math.cos(v*1.8));
+ const bx=x, by=y;
+ x=bx*Math.cos(twist)-by*Math.sin(twist)*(span/scale);
+ y=by*Math.cos(twist)+bx*Math.sin(twist)*(scale/span);
+ // A new current appears gradually and then dissolves, never a mode switch.
+ const tideStrength=.012 + .019*(.5+.5*epoch);
+ x+=span*tideStrength*Math.sin(v*(2.4+INV_PHI)+time*.037+s.phase*.34)*drift;
+ y+=scale*.019*epoch*Math.cos(v*(3.1+INV_PHI)+time*.025+s.phase*.30);
+ const bend=.03*Math.sin(time*.11 + s.phase*.2 + v*(2+INV_PHI));
+ x += span*bend;
+ const px=(interaction.x-.5)*span*1.65;
+ const py=(interaction.y-.5)*scale*1.75;
+ const broadInfluence=Math.exp(-((v-(interaction.y-.5)*1.4-branchShift*0.4)**2)*(.60 + .10*s.fibWeight));
+ x += gestureX*span*(.16 + .02*s.fibWeight)*broadInfluence;
+ y += gestureY*scale*(.11 + .02*s.fibWeight)*broadInfluence;
+ // Touch memory bends nearby light in a fading, circular wake.
+ const ex=(echoX-.5)*span*1.65, ey=(echoY-.5)*scale*1.75;
+ const erx=x-ex,ery=y-ey;
+ const wake=echoEnergy*Math.exp(-(erx*erx/(span*span*.32)+ery*ery/(scale*scale*.30)));
+ x+= -ery*echoSpin*wake*.10;
+ y+= erx*echoSpin*wake*.075;
+ const dx=x-px, dy=y-py;
+ const influence=Math.exp(-(dx*dx/(span*span*.52)+dy*dy/(scale*scale*.48)));
+ const touch=interaction.force*influence;
+ x += interaction.dx*touch*span*.26*scaleMul;
+ y += interaction.dy*touch*scale*.21*scaleMul;
+ const a=interaction.swirl*touch*.40;
+ const rx=x-px, ry=y-py;
+ x += -ry*a*.78;
+ y += rx*a*.54;
+ x += (px-x)*touch*interaction.hold*.17*scaleMul;
+ y += (py-y)*touch*interaction.hold*.18*scaleMul;
+ return [cx+x,cy+y];
+}
+function drawPathForStrand(ctx,s,time,core,span,interaction,opts={}){
+ // Extend the actual curves far outside the viewport at both ends.
+ // This prevents visible starts and stops when the phone is rotated landscape.
+ const steps=opts.steps||44;
+ const tail=opts.tail||16;
+ const path=new Path2D();
+ const total=steps+tail*2;
+ for(let j=0;j<=total;j++){
+   const z=(j-tail)/steps;
+   // Domain intentionally extends beyond 0..1, maintaining the same core motion.
+   const [x,y]=pos(s,z,time,core,span,interaction,opts.scaleMul||1,opts.branchShift||0);
+   if(j===0)path.moveTo(x,y); else path.lineTo(x,y);
+ }
+ return path;
+}
+function draw(time,ctx,width,height,detail=1){
+ const cx=width*.5 + Math.sin(time*.08)*width*.009;
+ const cy=height*.49;
+ const scale=Math.max(height*.74,width*.67), span=Math.min(width*1.12,scale*.92);
+ const core={cx,cy,scale};
+ const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(width,height)*.85);
+ bg.addColorStop(0,'#11192a');bg.addColorStop(.36,'#090f1c');bg.addColorStop(.72,'#050813');bg.addColorStop(1,'#03050a');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,width,height);
+ ctx.globalCompositeOperation='screen';
+ const phiBreath=(Math.sin(time*.061+worldBreath)+Math.sin(time*.061*INV_PHI+worldBreath*.73)+Math.sin(time*.061*INV_PHI*INV_PHI+worldBreath*1.31))/3;
+ let aura=ctx.createRadialGradient(cx,cy,0,cx,cy,scale*(.58 + .02*phiBreath));
+ aura.addColorStop(0,'rgba(252,252,255,.16)');
+ aura.addColorStop(.18,'rgba(223,235,255,.12)');
+ aura.addColorStop(.42,'rgba(178,208,255,.045)');
+ aura.addColorStop(.618,'rgba(255,238,210,.03)');
+ aura.addColorStop(1,'rgba(0,0,0,0)');
+ ctx.fillStyle=aura;ctx.fillRect(0,0,width,height);
+ const interaction={...pointer};
+ const n=strands.length;
+ const steps=detail?44:30;
+ for(let i=0;i<n;i++){
+   const s=strands[i];
+   const path=drawPathForStrand(ctx,s,time+s.lane*.2,core,span,interaction,{steps,tail:Math.ceil(steps*1.15)});
+   const whiteAlpha=(.09+s.white*.19+interaction.hold*.085)*(1+.075*phiBreath)+afterglow*.012;
+   if(i%7===0){
+     ctx.strokeStyle=rgba(194,220,255,.040+interaction.hold*.018);
+     ctx.lineWidth=3.8+s.width*2.9;
+     ctx.stroke(path);
+   }
+   if(i%13===0){
+     ctx.strokeStyle=rgba(255,239,213,.032+interaction.hold*.016);
+     ctx.lineWidth=2.2+s.width*1.6;
+     ctx.stroke(path);
+   }
+   const rr=243 + Math.floor(s.gold*10);
+   const gg=245 + Math.floor(s.gold*6 - s.cool*3);
+   const bb=250 - Math.floor(s.gold*8) + Math.floor(s.cool*9);
+   ctx.strokeStyle=rgba(rr,gg,bb,whiteAlpha);
+   ctx.lineWidth=.34+s.width*.50;
+   ctx.stroke(path);
+
+   // Fractal / self-similar child filaments on selected strands.
+   if(s.fractal && (i%3===0)){
+     const child=drawPathForStrand(ctx,s,time*(1+.02*s.fibWeight)+.15,core,span,interaction,{steps:Math.max(18,Math.floor(steps*0.72)),tail:Math.ceil(Math.max(18,Math.floor(steps*0.72))*1.15),scaleMul:s.childScale,branchShift:s.childShift});
+     ctx.strokeStyle=rgba(236,245,255, .028 + .04*s.childScale + interaction.hold*.018);
+     ctx.lineWidth=.22+s.width*.18;
+     ctx.stroke(child);
+   }
+ }
+ for(let i=0;i<dust.length;i++){
+   const p=dust[i], s=strands[(i*17)%strands.length];
+   const z=(p.u+time*(.010+p.scale*.015)*s.direction+10)%1;
+   const [x,y]=pos(s,z,time,core,span,interaction,.55,0);
+   if(x<0||x>width||y<0||y>height)continue;
+   const rad=.24+p.scale*.88+interaction.hold*.42;
+   const tint=(i%9===0)?[255,244,220]:(i%5===0?[228,240,255]:[255,255,255]);
+   const alpha=.16+p.scale*.30+interaction.hold*.04;
+   ctx.beginPath();ctx.fillStyle=rgba(tint[0],tint[1],tint[2],alpha);ctx.arc(x,y,rad,0,TAU);ctx.fill();
+ }
+ const bright=.78+Math.sin(time*.43)*.13+pointer.hold*.36+wavePulse*.12+afterglow*.09+phiBreath*.05+.035*Math.sin(time*.027)*Math.sin(time*.017*INV_PHI);
+ ctx.save();
+ ctx.translate(cx,cy); ctx.scale(.58,2.35 + .10*phiBreath);
+ const coreGlow=ctx.createRadialGradient(0,0,0,0,0,span*.42);
+ coreGlow.addColorStop(0,rgba(255,251,240,.23*bright));
+ coreGlow.addColorStop(.18,rgba(240,248,255,.10*bright));
+ coreGlow.addColorStop(.382,rgba(226,238,255,.054*bright));
+ coreGlow.addColorStop(.618,rgba(220,236,255,.032*bright));
+ coreGlow.addColorStop(1,'rgba(255,255,255,0)');
+ ctx.fillStyle=coreGlow; ctx.beginPath(); ctx.arc(0,0,span*.42,0,TAU); ctx.fill();
+ ctx.restore();
+ const across=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(width,height)*.6);
+ across.addColorStop(0,rgba(241,245,255,.050*bright));
+ across.addColorStop(.382,rgba(232,243,255,.024*bright));
+ across.addColorStop(.618,rgba(255,241,212,.013*bright));
+ across.addColorStop(1,'rgba(255,255,255,0)');
+ ctx.fillStyle=across; ctx.fillRect(0,0,width,height);
+ if(pointer.force>.02){
+   const xx=pointer.x*width, yy=pointer.y*height, r=width*(.20+pointer.hold*.18);
+   const a=ctx.createRadialGradient(xx,yy,0,xx,yy,r);
+   a.addColorStop(0,rgba(255,255,255,.12*pointer.force+.25*pointer.hold+.04*afterglow));
+   a.addColorStop(.16,rgba(245,250,255,.050*pointer.force+.09*pointer.hold+.02*afterglow));
+   a.addColorStop(.34,rgba(255,241,212,.022*pointer.force+.035*pointer.hold));
+   a.addColorStop(1,'rgba(255,255,255,0)');
+   ctx.fillStyle=a; ctx.beginPath(); ctx.arc(xx,yy,r,0,TAU); ctx.fill();
+ }
+ if(wavePulse>.015){
+   const xx=pointer.x*width, yy=pointer.y*height;
+   const rr=Math.min(width,height)*(.16+(1-wavePulse)*.24);
+   const soft=ctx.createRadialGradient(xx,yy,rr*.25,xx,yy,rr);
+   soft.addColorStop(0,'rgba(255,255,255,0)');
+   soft.addColorStop(.55,rgba(239,247,255,wavePulse*.025));
+   soft.addColorStop(1,'rgba(255,255,255,0)');
+   ctx.fillStyle=soft; ctx.beginPath(); ctx.arc(xx,yy,rr,0,TAU); ctx.fill();
+ }
+ ctx.globalCompositeOperation='source-over';
+}
+function frame(now){if(!last)last=now;const dt=Math.min(.045,(now-last)/1000);last=now;if(!paused){const step=dt*(reduce?.5:1);t+=step;elapsed+=dt;evolveCurrents(step);quietTimer+=dt;if(quietTimer>4)release.classList.add('quiet');pointer.force=smooth(pointer.force, pointer.down?.56:0,dt*(pointer.down?1.2:1.55));pointer.hold=smooth(pointer.hold,pointer.down?1:0,dt*(pointer.down?1.05:1.8));pointer.dx*=Math.pow(.13,dt);pointer.dy*=Math.pow(.13,dt);pointer.swirl*=Math.pow(.22,dt);gestureX*=Math.pow(.12,dt);gestureY*=Math.pow(.12,dt);wavePulse*=Math.pow(.22,dt);afterglow*=Math.pow(.67,dt);echoEnergy*=Math.pow(.48,dt);echoSpin*=Math.pow(.60,dt);draw(t,g,W,H,W>500?1:0);}requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function clock(sec){let n=Math.floor(sec);return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;}
+let frozenFrame=null, exportFormat='square';
+const formatButtons=[...document.querySelectorAll('.format-option')];
+const feedback=document.getElementById('save-feedback');
+let feedbackTimeout=0;
+function feedbackText(message){clearTimeout(feedbackTimeout);feedback.textContent=message;if(message)feedbackTimeout=setTimeout(()=>feedback.textContent='',5000);}
+function imageForFormat(){
+ if(!frozenFrame)return;
+ const portrait=exportFormat==='portrait';
+ const outWidth=1080,outHeight=portrait?1920:1080;
+ art.width=outWidth;art.height=outHeight;
+ art.classList.toggle('portrait',portrait);
+ const source=frozenFrame;
+ const ratio=outWidth/outHeight;
+ const sourceRatio=source.width/source.height;
+ let sx=0,sy=0,sw=source.width,sh=source.height;
+ // Center-crop without stretching or inventing parts of the released moment.
+ if(sourceRatio>ratio){sw=source.height*ratio;sx=(source.width-sw)*.5;}
+ else{sh=source.width/ratio;sy=(source.height-sh)*.5;}
+ ag.clearRect(0,0,outWidth,outHeight);
+ ag.drawImage(source,sx,sy,sw,sh,0,0,outWidth,outHeight);
+}
+function setFormat(format){
+ exportFormat=format;
+ for(const button of formatButtons){const active=button.dataset.format===format;button.classList.toggle('selected',active);button.setAttribute('aria-pressed',String(active));}
+ feedbackText('');
+ imageForFormat();
+}
+formatButtons.forEach(button=>button.addEventListener('click',()=>setFormat(button.dataset.format)));
+release.addEventListener('click',()=>{
+ paused=true;artNumber++;
+ frozenFrame=document.createElement('canvas');frozenFrame.width=canvas.width;frozenFrame.height=canvas.height;
+ frozenFrame.getContext('2d').drawImage(canvas,0,0);
+ setFormat('square');
+ document.getElementById('moment').textContent=`ZEN VISIONZ · ${clock(elapsed)} · #${String(artNumber).padStart(3,'0')}`;
+ modal.classList.add('open');
+});
+const supportOpen=document.getElementById('support-open');
+const supportScreen=document.getElementById('support-screen');
+const amount=document.getElementById('amount');
+const supportStatus=document.getElementById('support-status');
+function showSupport(show){
+  modal.classList.toggle('support-mode',show);
+  supportScreen.setAttribute('aria-hidden',String(!show));
+  if(show){supportScreen.scrollTop=0;document.activeElement?.blur();}
+}
+supportOpen.addEventListener('click',()=>showSupport(true));
+document.getElementById('support-close').addEventListener('click',()=>showSupport(false));
+amount.addEventListener('input',()=>{
+  const v=Number(amount.value);
+  const valid=amount.value!==''&&Number.isSafeInteger(v)&&v>0;
+  supportStatus.textContent=valid?`¥${v.toLocaleString('ja-JP')} selected · Payments coming soon.`:'Payments are not available yet.';
+});
+document.getElementById('continue').addEventListener('click',()=>{showSupport(false);modal.classList.remove('open');paused=false;last=performance.now();quietTimer=0;release.classList.remove('quiet');});
+document.getElementById('save').addEventListener('click',()=>{
+ const format=exportFormat;
+ const name=`ZEN_VISIONZ_RELEASE_${String(artNumber).padStart(3,'0')}_${format==='portrait'?'WALLPAPER':'SQUARE'}.png`;
+ art.toBlob(blob=>{
+  if(!blob){feedbackText('EXPORT FAILED — PLEASE TRY AGAIN');return;}
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  feedbackText('DOWNLOAD STARTED · CHECK YOUR DOWNLOADS');
+  setTimeout(()=>URL.revokeObjectURL(url),15000);
+ },'image/png');
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open')){if(modal.classList.contains('support-mode'))showSupport(false);else document.getElementById('continue').click();}});document.addEventListener('visibilitychange',()=>{last=performance.now()});
+})();
+</script></body></html>
